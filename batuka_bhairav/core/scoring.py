@@ -43,7 +43,7 @@ def score_stock(df, sector_score=8, news_score=5, regime_score=3):
     breakout_score = 0
     if close.iloc[-1] > sma20:
         breakout_score += 5
-    if rsi and rsi > 60:
+    if not pd.isna(rsi) and float(rsi) > 60:
         breakout_score += 5
 
     total = (
