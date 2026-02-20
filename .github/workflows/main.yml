@@ -1,0 +1,28 @@
+name: Batuka Bhairava Intelligence Engine
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 10 * * 1-5'   # Runs at 4:00 PM IST (10:30 UTC) Monday-Friday
+
+jobs:
+  run-engine:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Batuka Bhairava Engine
+        run: |
+          python batuka_bhairav/run_engine.py
