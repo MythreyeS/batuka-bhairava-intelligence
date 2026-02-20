@@ -3,7 +3,7 @@ name: Batuka Bhairava Intelligence Engine
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 10 * * 1-5'   # Runs at 4:00 PM IST (10:30 UTC) Monday-Friday
+    - cron: '30 10 * * 1-5'   # 4:00 PM IST (10:30 UTC), Mon–Fri
 
 jobs:
   run-engine:
@@ -20,9 +20,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Run Batuka Bhairava Engine
+        env:
+          PYTHONPATH: .
         run: |
           python batuka_bhairav/run_engine.py
