@@ -24,7 +24,7 @@ def score_stock(df, sector_score=8, news_score=5, regime_score=3):
     volume = df["Volume"]
 
     # --- Momentum (30) ---
-    day_return = (close.iloc[-1] - close.iloc[-2]) / close.iloc[-2] * 100
+   day_return = float((close.iloc[-1] - close.iloc[-2]) / close.iloc[-2] * 100)
     momentum_score = min(max(day_return * 6, 0), 30)
 
     # --- Volume (20) ---
