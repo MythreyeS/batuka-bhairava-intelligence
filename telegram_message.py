@@ -8,58 +8,59 @@ def render_message(
     tomorrow,
     btst_cards,
 ):
-    close = regime.get("close")
-    prev = regime.get("prev_close")
-    chg = regime.get("change")
-    chg_pct = regime.get("change_pct")
-    sma20 = regime.get("sma20")
-    reg = regime.get("regime")
 
-    msg = []
-    msg.append("🛡️ Batuka Bhairava Intelligence — Market Wrap\n")
+    header = "Batuka Bhairava Intelligence — Market Wrap\n\n"
 
-    msg.append(
-        f"NIFTY: Close {round(close,2)} | Prev {round(prev,2)} | "
-        f"Chg {round(chg,2)} ({round(chg_pct,2)}%)"
+    regime_block = (
+        f"NIFTY Regime: {regime.get('regime')}\n"
+        f"Close: {regime.get('close')}\n"
+        f"SMA20: {regime.get('sma20')}\n\n"
     )
-    msg.append(f"Regime: {reg} (rule: Close vs SMA20)")
-    msg.append(f"SMA20: {round(sma20,2)}")
 
-    # Sector Strength
-    msg.append("\n📌 Sector Strength")
+    sector_block = "Sector Strength:\n"
     for s in sector_table[:5]:
-        msg.append(
-            f"{s['sector']} | Avg {s['avg_change_pct']}% | Breadth {s['breadth']}"
+        sector_block += f"• {s['sector']} → {round(s['score'],2)}\n"
+    sector_block += "\n"
+
+    news_block = "Top News Drivers:\n"
+    for n in news_drivers[:5]:
+        news_block += f"• {n}\n"
+    news_block += "\n"
+
+    mom_block = ""
+    if man_of_match:
+        mom_block = (
+            "Man of the Match:\n"
+            f"{man_of_match['symbol']} — "
+            f"Open {man_of_match['open']} / "
+            f"Close {man_of_match['close']} / "
+            f"{man_of_match['pct_change']}%\n\n"
         )
 
-    # News
-    msg.append("\n📰 Market Drivers")
-    for n in news_drivers[:8]:
-        msg.append(f"• {n}")
+    btst_block = ""
+    if btst_cards:
+        btst_block = "BTST Action Card (₹5,000 Plan)\n"
+        for c in btst_cards:
+            btst_block += (
+                f"{c['symbol']} | Entry {c['entry']} | "
+                f"Target {c['target']} | "
+                f"SL {c['stop']} | "
+                f"Conviction {c['conviction']}\n"
+            )
 
-    # Man of Match
-    msg.append("\n🔥 Man of the Match")
-    for r in man_of_match[:20]:
-        msg.append(
-            f"{r['symbol']} | O:{round(r['open'],2)} "
-            f"C:{round(r['close'],2)} "
-            f"| {round(r['day_change_pct'],2)}% "
-            f"| Vol×{round(r['vol_ratio'],2)}"
-        )
+    tomorrow_block = (
+        "\nTomorrow Outlook:\n"
+        f"Base: {tomorrow.get('base')}\n"
+        f"Bull: {tomorrow.get('bull')}\n"
+        f"Bear: {tomorrow.get('bear')}\n"
+    )
 
-    # Tomorrow View
-    msg.append("\n🔮 Tomorrow Outlook")
-    msg.append(f"Base: {tomorrow.get('base','')}")
-    msg.append(f"Bull: {tomorrow.get('bull','')}")
-    msg.append(f"Bear: {tomorrow.get('bear','')}")
-
-    # BTST
-    msg.append("\n🎯 BTST Action Card (₹5,000 Plan)")
-    for c in btst_cards:
-        msg.append(
-            f"{c['symbol']} | Entry {c['entry']} | "
-            f"Target {c['target']} | SL {c['stop']} | "
-            f"Qty {c['qty']} | R:R {c['rr']}"
-        )
-
-    return "\n".join(msg)
+    return (
+        header
+        + regime_block
+        + sector_block
+        + news_block
+        + mom_block
+        + tomorrow_block
+        + btst_block
+    )
