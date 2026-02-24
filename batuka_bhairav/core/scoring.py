@@ -1,70 +1,119 @@
-import pandas as pd
+# batuka_bhairav/core/scoring.py
+from __future__ import annotations
+
+import math
+from typing import Dict, List, Tuple
 import numpy as np
 
-def calculate_sma(series, window=20):
-    return series.rolling(window).mean()
 
-def calculate_rsi(close, period=14):
-    delta = close.diff()
-    gain = delta.clip(lower=0)
-    loss = -delta.clip(upper=0)
+def compute_stock_features(df) -> dict | None:
+    if df is None or df.empty or len(df) < 2:
+        return None
 
-    avg_gain = gain.rolling(period).mean()
-    avg_loss = loss.rolling(period).mean()
+    # last day + prev day
+    last = df.iloc[-1]
+    prev = df.iloc[-2]
 
-    rs = avg_gain / avg_loss.replace(0, np.nan)
-    rsi = 100 - (100 / (1 + rs))
-    return rsi
+    open_ = float(last.get("Open", np.nan))
+    close = float(last.get("Close", np.nan))
+    prev_close = float(prev.get("Close", np.nan))
+    vol = float(last.get("Volume", np.nan))
+    prev_vol = float(prev.get("Volume", np.nan))
 
-def score_stock(df, sector_score=8, news_score=5, regime_score=3):
-    if df is None or len(df) < 30:
-        return 0, "Insufficient data"
+    if any(np.isnan(x) for x in [open_, close, prev_close]) or prev_close == 0:
+        return None
 
-    close = df["Close"]
-    volume = df["Volume"]
+    day_change_pct = ((close - prev_close) / prev_close) * 100.0
+    gap_pct = ((open_ - prev_close) / prev_close) * 100.0
 
-    # --- Momentum (30) ---
-   day_return = float((close.iloc[-1] - close.iloc[-2]) / close.iloc[-2] * 100)
-    momentum_score = min(max(day_return * 6, 0), 30)
+    vol_ratio = (vol / prev_vol) if prev_vol and prev_vol > 0 else 1.0
 
-    # --- Volume (20) ---
-    vol_avg = volume.tail(20).mean()
-    vol_ratio = volume.iloc[-1] / vol_avg if vol_avg else 1
-    if vol_ratio >= 2:
-        volume_score = 18
-    elif vol_ratio >= 1.5:
-        volume_score = 12
+    # simple momentum
+    mom_1d = (close - prev_close) / prev_close
+
+    # close near high (simple)
+    high = float(last.get("High", close))
+    close_near_high = 1.0 if high > 0 and (close / high) >= 0.98 else 0.0
+
+    return {
+        "open": open_,
+        "close": close,
+        "prev_close": prev_close,
+        "day_change_pct": day_change_pct,
+        "gap_pct": gap_pct,
+        "vol_ratio": float(vol_ratio),
+        "mom_1d": float(mom_1d),
+        "close_near_high": close_near_high,
+    }
+
+
+def sector_strength_score(sector_rank: dict, sector: str) -> float:
+    """
+    sector_rank example: {"Banking": +1.2, "IT": -0.4, ...} normalized.
+    Returns 0..1 where 1 means strongest sector.
+    """
+    if not sector or sector not in sector_rank:
+        return 0.5
+    # sector_rank is already normalized around 0; convert to 0..1
+    x = sector_rank[sector]
+    # clamp
+    return float(max(0.0, min(1.0, 0.5 + x)))
+
+
+def conviction_score_0_100(
+    features: dict,
+    sector_score_0_1: float,
+    news_score_0_1: float,
+    regime: str,
+    weights: dict
+) -> float:
+    """
+    weights out of 100, returns 0..100 conviction
+    """
+
+    # Price momentum (0..1)
+    mom = max(0.0, min(1.0, (features["day_change_pct"] + 3.0) / 6.0))  # -3%..+3% mapped
+
+    # Volume expansion (0..1)
+    vol = max(0.0, min(1.0, features["vol_ratio"] / 2.0))  # 2x = full
+
+    # Breakout/technical proxy (0..1)
+    tech = 0.7 if features["close_near_high"] >= 1.0 else 0.4
+
+    # Market regime fit (0..1)
+    if regime == "BULLISH":
+        reg_fit = 1.0
+    elif regime == "NEUTRAL":
+        reg_fit = 0.6
     else:
-        volume_score = 6
+        reg_fit = 0.0
 
-    # --- Breakout (10) ---
-    sma20 = calculate_sma(close, 20).iloc[-1]
-    rsi = calculate_rsi(close).iloc[-1]
-    breakout_score = 0
-    if close.iloc[-1] > sma20:
-        breakout_score += 5
-    if not pd.isna(rsi) and float(rsi) > 60:
-        breakout_score += 5
+    total = 0.0
+    total += weights["price_momentum"] * mom
+    total += weights["volume_expansion"] * vol
+    total += weights["sector_strength"] * sector_score_0_1
+    total += weights["news_sentiment"] * news_score_0_1
+    total += weights["breakout_technical"] * tech
+    total += weights["market_regime_fit"] * reg_fit
 
-    total = (
-        momentum_score +
-        volume_score +
-        sector_score +
-        news_score +
-        breakout_score +
-        regime_score
-    )
+    return float(round(total, 2))
 
-    total = min(total, 100)
 
-    explanation = f"""
-Momentum: {momentum_score:.1f}/30
-Volume: {volume_score}/20
-Sector: {sector_score}/15
-News: {news_score}/20
-Breakout: {breakout_score}/10
-Regime: {regime_score}/5
-Total: {total:.1f}/100
-"""
+def build_btst_card(symbol: str, close_price: float, capital: int, target_pct: float, stop_pct: float) -> dict:
+    entry = close_price  # BTST uses close as reference; next open may gap
+    target = entry * (1.0 + target_pct)
+    stop = entry * (1.0 - stop_pct)
 
-    return total, explanation.strip()
+    qty = int(capital // entry) if entry > 0 else 0
+    risk_per_share = entry - stop
+    reward_per_share = target - entry
+    rr = (reward_per_share / risk_per_share) if risk_per_share > 0 else 0.0
+
+    return {
+        "symbol": symbol,
+        "entry": round(entry, 2),
+        "target": round(target, 2),
+        "stop": round(stop, 2),
+        "qty": qty,
+        "rr": round(rr, 2),
+    }
