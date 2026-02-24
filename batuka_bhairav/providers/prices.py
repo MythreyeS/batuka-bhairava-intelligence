@@ -1,67 +1,42 @@
 # batuka_bhairav/providers/prices.py
-from __future__ import annotations
 
-import math
-from typing import Dict, List, Tuple
-import pandas as pd
 import yfinance as yf
-
-from batuka_bhairav.config import YFINANCE_PERIOD, YFINANCE_INTERVAL, YFINANCE_BATCH_SIZE
-
-
-def _chunk(lst: List[str], n: int) -> List[List[str]]:
-    return [lst[i:i+n] for i in range(0, len(lst), n)]
+import pandas as pd
 
 
-def fetch_ohlcv_batch(symbols: List[str]) -> Dict[str, pd.DataFrame]:
+def fetch_ohlcv_batch(symbols, period="1mo", interval="1d"):
     """
-    Returns: dict(symbol -> df with columns Open High Low Close Volume)
-    Uses yf.download with multiple tickers in batches for speed & reliability.
+    Fetch OHLCV data safely.
+    Skips failed symbols instead of crashing engine.
     """
-    out: Dict[str, pd.DataFrame] = {}
-    symbols = [s.strip() for s in symbols if s and isinstance(s, str)]
-    if not symbols:
-        return out
 
-    for batch in _chunk(symbols, YFINANCE_BATCH_SIZE):
-        tickers = " ".join(batch)
-        df = yf.download(
-            tickers=tickers,
-            period=YFINANCE_PERIOD,
-            interval=YFINANCE_INTERVAL,
-            group_by="ticker",
-            auto_adjust=False,
-            threads=True,
-            progress=False,
-        )
-        if df is None or len(df) == 0:
-            continue
+    result = {}
 
-        # Single ticker case
-        if isinstance(df.columns, pd.Index) and "Close" in df.columns:
-            sym = batch[0]
-            out[sym] = df.dropna(how="all")
-            continue
+    for symbol in symbols:
+        try:
+            df = yf.download(
+                symbol,
+                period=period,
+                interval=interval,
+                progress=False,
+                auto_adjust=True,
+                threads=False,
+            )
 
-        # Multi ticker (MultiIndex columns)
-        for sym in batch:
-            try:
-                sub = df[sym].dropna(how="all")
-                if len(sub) > 0:
-                    out[sym] = sub
-            except Exception:
+            if df is None or df.empty:
+                print(f"⚠ No data for {symbol}")
                 continue
 
-    return out
+            df = df.dropna()
 
+            if len(df) < 5:
+                print(f"⚠ Insufficient data for {symbol}")
+                continue
 
-def fetch_index_ohlc(symbol: str) -> pd.DataFrame:
-    df = yf.download(
-        tickers=symbol,
-        period=YFINANCE_PERIOD,
-        interval=YFINANCE_INTERVAL,
-        progress=False,
-    )
-    if df is None:
-        return pd.DataFrame()
-    return df.dropna(how="all")
+            result[symbol] = df
+
+        except Exception as e:
+            print(f"❌ Failed for {symbol}: {e}")
+            continue
+
+    return result
