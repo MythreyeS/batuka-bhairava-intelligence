@@ -1,7 +1,80 @@
-symbol,name
-RELIANCE.NS,Reliance Industries
-TCS.NS,Tata Consultancy Services
-INFY.NS,Infosys
-HDFCBANK.NS,HDFC Bank
-ICICIBANK.NS,ICICI Bank
-SBIN.NS,State Bank of India
+symbol,company,sector
+RELIANCE.NS,Reliance Industries,Energy
+TCS.NS,Tata Consultancy Services,IT
+INFY.NS,Infosys,IT
+HDFCBANK.NS,HDFC Bank,Banking
+ICICIBANK.NS,ICICI Bank,Banking
+KOTAKBANK.NS,Kotak Mahindra Bank,Banking
+SBIN.NS,State Bank of India,Banking
+AXISBANK.NS,Axis Bank,Banking
+LT.NS,Larsen & Toubro,Infrastructure
+ULTRACEMCO.NS,UltraTech Cement,Cement
+ADANIENT.NS,Adani Enterprises,Infrastructure
+ADANIPORTS.NS,Adani Ports,Infrastructure
+TITAN.NS,Titan Company,Consumer
+ITC.NS,ITC Ltd,FMCG
+HINDUNILVR.NS,Hindustan Unilever,FMCG
+BAJFINANCE.NS,Bajaj Finance,Financial Services
+BAJAJFINSV.NS,Bajaj Finserv,Financial Services
+MARUTI.NS,Maruti Suzuki,Auto
+TATAMOTORS.NS,Tata Motors,Auto
+M&M.NS,Mahindra & Mahindra,Auto
+SUNPHARMA.NS,Sun Pharma,Pharma
+DRREDDY.NS,Dr Reddys Laboratories,Pharma
+CIPLA.NS,Cipla,Pharma
+WIPRO.NS,Wipro,IT
+TECHM.NS,Tech Mahindra,IT
+HCLTECH.NS,HCL Technologies,IT
+POWERGRID.NS,Power Grid Corporation,Power
+NTPC.NS,NTPC,Power
+ONGC.NS,ONGC,Energy
+COALINDIA.NS,Coal India,Energy
+BHARTIARTL.NS,Bharti Airtel,Telecom
+INDUSINDBK.NS,IndusInd Bank,Banking
+JSWSTEEL.NS,JSW Steel,Metals
+TATASTEEL.NS,Tata Steel,Metals
+HINDALCO.NS,Hindalco Industries,Metals
+GRASIM.NS,Grasim Industries,Cement
+SHREECEM.NS,Shree Cement,Cement
+EICHERMOT.NS,Eicher Motors,Auto
+HEROMOTOCO.NS,Hero MotoCorp,Auto
+ASIANPAINT.NS,Asian Paints,Consumer
+NESTLEIND.NS,Nestle India,FMCG
+BRITANNIA.NS,Britannia Industries,FMCG
+DIVISLAB.NS,Divis Laboratories,Pharma
+APOLLOHOSP.NS,Apollo Hospitals,Healthcare
+BPCL.NS,BPCL,Energy
+IOC.NS,Indian Oil Corporation,Energy
+GAIL.NS,GAIL India,Energy
+ADANIGREEN.NS,Adani Green,Power
+ADANITRANS.NS,Adani Transmission,Power
+SIEMENS.NS,Siemens,Capital Goods
+ABB.NS,ABB India,Capital Goods
+DLF.NS,DLF,Real Estate
+GODREJPROP.NS,Godrej Properties,Real Estate
+LODHA.NS,Lodha Developers,Real Estate
+PIDILITIND.NS,Pidilite Industries,Chemicals
+SRF.NS,SRF Ltd,Chemicals
+UPL.NS,UPL,Chemicals
+HAVELLS.NS,Havells India,Consumer
+TATAPOWER.NS,Tata Power,Power
+BANKBARODA.NS,Bank of Baroda,Banking
+PNB.NS,Punjab National Bank,Banking
+CANBK.NS,Canara Bank,Banking
+RECLTD.NS,REC Ltd,Financial Services
+PFC.NS,Power Finance Corp,Financial Services
+IRFC.NS,IRFC,Financial Services
+ZOMATO.NS,Zomato,Internet
+NYKAA.NS,Nykaa,Internet
+PAYTM.NS,One97 Communications,Internet
+INDIGO.NS,InterGlobe Aviation,Aviation
+TATAELXSI.NS,Tata Elxsi,IT
+LTIM.NS,LTIMindtree,IT
+BEL.NS,Bharat Electronics,Defence
+HAL.NS,Hindustan Aeronautics,Defence
+BHEL.NS,BHEL,Capital Goods
+JSWENERGY.NS,JSW Energy,Power
+AMBUJACEM.NS,Ambuja Cements,Cement
+COLPAL.NS,Colgate Palmolive,FMCG
+DMART.NS,Avenue Supermarts,Retail
+TRENT.NS,Trent,Retail
