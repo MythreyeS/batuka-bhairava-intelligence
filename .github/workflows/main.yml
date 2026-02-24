@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
 
   schedule:
-    # Mandatory Pre-Market (8:45 AM IST)
+    # Mandatory Pre-Market (8:45 AM IST → 03:15 UTC)
     - cron: '15 3 * * *'
 
-    # Mandatory Post-Market Wrap (3:40 PM IST)
+    # Mandatory Post-Market Wrap (3:40 PM IST → 10:10 UTC)
     - cron: '10 10 * * *'
 
 jobs:
