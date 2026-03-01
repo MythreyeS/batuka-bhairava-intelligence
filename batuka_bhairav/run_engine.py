@@ -1,5 +1,4 @@
 # batuka_bhairav/run_engine.py
-
 from __future__ import annotations
 
 import pandas as pd
@@ -43,10 +42,7 @@ def get_day_context():
     ist = pytz.timezone("Asia/Kolkata")
     now = datetime.now(ist)
     weekday = now.weekday()  # 0=Mon ... 6=Sun
-
-    if weekday >= 5:
-        return "WEEKEND"
-    return "WEEKDAY"
+    return "WEEKEND" if weekday >= 5 else "WEEKDAY"
 
 
 # ---------------------------------------------------------
@@ -72,21 +68,25 @@ def main():
     # 🔹 Day Context
     day_type = get_day_context()
 
-    # 🔹 Market Regime
-    regime = get_market_regime()
-
     # 🔹 Load Universe
     uni = load_universe()
     symbols = uni["symbol"].astype(str).tolist()
 
-    # 🔹 Fetch Price Data
+    # 🔹 Fetch Price Data (stocks)
     price_map = fetch_ohlcv_batch(symbols)
+
+    # 🔹 Market Regime (use index proxy)
+    # NIFTY 50 index ticker on Yahoo is usually "^NSEI"
+    # We'll try ^NSEI first; if missing, fallback to NIFTYBEES ETF.
+    index_map = fetch_ohlcv_batch(["^NSEI", "NIFTYBEES.NS"])
+    idx_df = index_map.get("^NSEI") or index_map.get("NIFTYBEES.NS")
+    regime = get_market_regime(idx_df)  # ✅ must pass df
 
     # 🔹 Build Feature Rows
     rows = []
     for _, r in uni.iterrows():
-        sym = r["symbol"]
-        sec = r["sector"]
+        sym = str(r["symbol"])
+        sec = str(r["sector"])
         df = price_map.get(sym)
 
         feat = compute_stock_features(df)
@@ -99,16 +99,20 @@ def main():
             **feat
         })
 
+    if not rows:
+        send_telegram("Batuka Bhairava Intelligence — Market Wrap\n\n⚠ No valid stock data received today.")
+        return
+
     # 🔹 Sector Strength
     sector_rank, sector_table = compute_sector_strength(rows)
 
     # 🔹 News Intelligence
     news_items = fetch_all_news(limit_per_feed=10)
     news_summary = summarize_news(news_items, max_items=8)
-    news_drivers = news_summary["drivers"]
-    news_sentiment = news_summary["sentiment"]
+    news_drivers = news_summary.get("drivers", [])
+    news_sentiment = news_summary.get("sentiment", 0.5)
 
-    # 🔹 Man of the Match (NOT limited to 5)
+    # 🔹 Man of the Match
     man_of_match = pick_man_of_match(rows)
 
     # 🔹 Conviction Scoring
@@ -119,21 +123,21 @@ def main():
             r,
             sec_score,
             news_sentiment,
-            regime.get("regime"),
+            regime,                   # ✅ regime is now a STRING
             CONVICTION_WEIGHTS
         )
 
         item = dict(r)
         item["conviction"] = conviction
+        item["score"] = conviction   # ✅ compatibility for older renderers
         scored.append(item)
 
     scored.sort(key=lambda x: x["conviction"], reverse=True)
 
     # 🔹 BTST Action Cards
     btst_cards = []
-
-    if regime.get("regime") in ("BULLISH", "NEUTRAL"):
-        top_candidates = [s for s in scored if s["conviction"] >= 70][:3]
+    if regime in ("BULLISH", "NEUTRAL"):
+        top_candidates = [s for s in scored if s["conviction"] >= 70][:5]  # ✅ 5 recommendations
 
         for s in top_candidates:
             card = build_btst_card(
@@ -143,18 +147,19 @@ def main():
                 target_pct=BTST_TARGET_PCT,
                 stop_pct=BTST_STOP_PCT,
             )
-            btst_cards.append(card)
+            if card:
+                btst_cards.append(card)
 
     # 🔹 Tomorrow Scenarios
     tomorrow = build_tomorrow_view(
-        regime.get("regime"),
+        regime,
         sector_table,
         news_summary
     )
 
     # 🔹 Render Message
     message = render_message(
-        regime=regime,
+        regime={"regime": regime},          # keep backward compatibility
         sector_table=sector_table,
         man_of_match=man_of_match,
         news_drivers=news_drivers,
