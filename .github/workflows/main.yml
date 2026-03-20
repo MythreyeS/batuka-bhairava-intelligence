@@ -2,35 +2,75 @@ name: Batuka Bhairava Intelligence Engine
 
 on:
   workflow_dispatch:
+    inputs:
+      market:
+        description: "Market to run (IN / US / UK / SG)"
+        default: "IN"
+        required: true
 
   schedule:
-    # Mandatory Pre-Market (8:45 AM IST → 03:15 UTC)
-    - cron: '15 3 * * *'
-
-    # Mandatory Post-Market Wrap (3:40 PM IST → 10:10 UTC)
-    - cron: '10 10 * * *'
+    # ── India — post-market 3:40 PM IST = 10:10 UTC (Mon-Fri)
+    - cron: '10 10 * * 1-5'
+    # ── India — pre-market 8:45 AM IST = 3:15 UTC (Mon-Fri)
+    - cron: '15 3 * * 1-5'
+    # ── USA — post-market 4:30 PM EST = 21:30 UTC (Mon-Fri)
+    - cron: '30 21 * * 1-5'
+    # ── UK — post-market 4:45 PM GMT = 16:45 UTC (Mon-Fri)
+    - cron: '45 16 * * 1-5'
 
 jobs:
   run-engine:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Detect market from schedule
+        id: detect
+        run: |
+          # If manually triggered, use input; otherwise detect from time
+          if [ -n "${{ github.event.inputs.market }}" ]; then
+            echo "market=${{ github.event.inputs.market }}" >> $GITHUB_OUTPUT
+          else
+            HOUR=$(date -u +%H)
+            MIN=$(date -u +%M)
+            # 10:10 UTC → India post-market
+            # 03:15 UTC → India pre-market
+            # 21:30 UTC → USA
+            # 16:45 UTC → UK
+            if [ "$HOUR" = "21" ]; then
+              echo "market=US" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" = "16" ]; then
+              echo "market=UK" >> $GITHUB_OUTPUT
+            else
+              echo "market=IN" >> $GITHUB_OUTPUT
+            fi
+          fi
 
       - name: Run Batuka Engine
         env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          MARKET:           ${{ steps.detect.outputs.market }}
+          TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          BTST_CAPITAL:     ${{ secrets.BTST_CAPITAL || '5000' }}
         run: |
+          echo "Running for market: $MARKET"
           python -m batuka_bhairav.run_engine
+
+      - name: Commit dashboard JSON
+        run: |
+          git config user.name  "Batuka Bot"
+          git config user.email "bot@batuka.ai"
+          git add docs/data/
+          git diff --staged --quiet || git commit -m "dashboard: update ${{ steps.detect.outputs.market }} data [skip ci]"
+          git push

@@ -1,0 +1,26 @@
+symbol,sector,name
+SHEL.L,Energy,Shell
+AZN.L,Healthcare,AstraZeneca
+HSBA.L,Banking,HSBC
+ULVR.L,FMCG,Unilever
+BP.L,Energy,BP
+RIO.L,Mining,Rio Tinto
+GSK.L,Healthcare,GSK
+DGE.L,Consumer,Diageo
+LLOY.L,Banking,Lloyds Banking
+BARC.L,Banking,Barclays
+VOD.L,Telecom,Vodafone
+BT-A.L,Telecom,BT Group
+GLEN.L,Mining,Glencore
+AAL.L,Mining,Anglo American
+PRU.L,Financial Services,Prudential
+LSEG.L,Financial Services,London Stock Exchange
+NG.L,Utilities,National Grid
+SSE.L,Utilities,SSE
+REL.L,Media,RELX
+WPP.L,Media,WPP
+BA.L,Industrial,BAE Systems
+RR.L,Industrial,Rolls-Royce
+IMB.L,FMCG,Imperial Brands
+BATS.L,FMCG,British American Tobacco
+CPG.L,Consumer,Compass Group

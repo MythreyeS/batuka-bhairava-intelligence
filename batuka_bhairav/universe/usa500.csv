@@ -1,0 +1,41 @@
+symbol,sector,name
+AAPL,Technology,Apple
+MSFT,Technology,Microsoft
+NVDA,Technology,NVIDIA
+AMZN,Consumer,Amazon
+META,Technology,Meta
+GOOGL,Technology,Alphabet
+TSLA,Auto,Tesla
+JPM,Banking,JPMorgan Chase
+V,Financial Services,Visa
+UNH,Healthcare,UnitedHealth
+XOM,Energy,ExxonMobil
+LLY,Healthcare,Eli Lilly
+JNJ,Healthcare,Johnson & Johnson
+WMT,Consumer,Walmart
+MA,Financial Services,Mastercard
+PG,FMCG,Procter & Gamble
+HD,Consumer,Home Depot
+CVX,Energy,Chevron
+MRK,Healthcare,Merck
+ABBV,Healthcare,AbbVie
+COST,Consumer,Costco
+PEP,FMCG,PepsiCo
+KO,FMCG,Coca-Cola
+ADBE,Technology,Adobe
+CRM,Technology,Salesforce
+AMD,Technology,AMD
+NFLX,Technology,Netflix
+INTC,Technology,Intel
+DIS,Media,Disney
+BA,Industrial,Boeing
+CAT,Industrial,Caterpillar
+GS,Banking,Goldman Sachs
+MS,Banking,Morgan Stanley
+BAC,Banking,Bank of America
+WFC,Banking,Wells Fargo
+C,Banking,Citigroup
+GE,Industrial,GE Aerospace
+MMM,Industrial,3M
+HON,Industrial,Honeywell
+UPS,Logistics,UPS

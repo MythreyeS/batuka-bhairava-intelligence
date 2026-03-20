@@ -1,6 +1,7 @@
 pandas
 numpy
-yfinance
+yfinance>=0.2.38
 feedparser
 requests
 python-dateutil
+pytz

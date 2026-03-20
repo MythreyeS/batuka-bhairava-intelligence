@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Batuka Bhairava — Intelligence Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:       #060810;
+  --s1:       #0C0E1A;
+  --s2:       #111320;
+  --border:   #1A1D2E;
+  --muted:    #353850;
+  --text:     #CDD0E8;
+  --sub:      #686B85;
+  --accent:   #7C6AF5;
+  --cyan:     #22D3EE;
+  --green:    #34D399;
+  --red:      #F87171;
+  --amber:    #FBBF24;
+  --gold:     #F59E0B;
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* ── HEADER ── */
+.header {
+  background: var(--s1);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.brand-name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--accent);
+}
+.brand-sub {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.market-tabs {
+  display: flex;
+  gap: 4px;
+}
+.tab {
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--sub);
+  transition: all .15s;
+  font-family: 'Space Grotesk', sans-serif;
+}
+.tab:hover { border-color: var(--accent); color: var(--text); }
+.tab.active {
+  background: rgba(124,106,245,.12);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.last-update {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  color: var(--muted);
+}
+.regime-pill {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.regime-pill.BULLISH { background:rgba(52,211,153,.1); color:var(--green); border:1px solid rgba(52,211,153,.25); }
+.regime-pill.BEARISH { background:rgba(248,113,113,.1); color:var(--red);   border:1px solid rgba(248,113,113,.25); }
+.regime-pill.NEUTRAL { background:rgba(251,191,36,.1);  color:var(--amber); border:1px solid rgba(251,191,36,.25); }
+.regime-pill.UNKNOWN { background:rgba(104,107,133,.1); color:var(--sub);   border:1px solid rgba(104,107,133,.25); }
+
+/* ── LAYOUT ── */
+.body { max-width: 1280px; margin: 0 auto; padding: 28px 32px 60px; }
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+
+/* ── CARD ── */
+.card {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 22px;
+}
+.card-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+/* ── STAT CARDS ── */
+.stat-val {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+.stat-sub { font-size: 11px; color: var(--sub); margin-top: 6px; }
+
+/* ── PICKS TABLE ── */
+.picks-table { width: 100%; border-collapse: collapse; }
+.picks-table th {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.picks-table td {
+  padding: 13px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12.5px;
+  vertical-align: middle;
+}
+.picks-table tr:last-child td { border-bottom: none; }
+.picks-table tbody tr:hover td { background: var(--s2); }
+.sname { font-weight: 600; color: var(--text); }
+.ssym  { font-family:'Space Mono',monospace; font-size:10px; color:var(--sub); margin-top:2px; }
+.buy-zone { font-family:'Space Mono',monospace; font-size:12px; color:var(--cyan); }
+.conv-wrap { min-width: 70px; }
+.conv-bar-bg { height:3px; border-radius:2px; background:var(--border); margin-top:4px; }
+.conv-bar    { height:3px; border-radius:2px; background:var(--green); }
+.pos { color: var(--green); }
+.neg { color: var(--red); }
+
+/* ── SECTOR BARS ── */
+.sec-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+.sec-row:last-child { border-bottom: none; }
+.sec-name { font-size:12px; flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.sec-bar-bg { width:70px; height:3px; background:var(--border); border-radius:2px; flex-shrink:0; }
+.sec-bar    { height:3px; border-radius:2px; }
+.sec-pct {
+  font-family:'Space Mono',monospace;
+  font-size:10px;
+  width:44px;
+  text-align:right;
+  flex-shrink:0;
+}
+
+/* ── NEWS ── */
+.news-item { padding:11px 0; border-bottom:1px solid var(--border); }
+.news-item:last-child { border-bottom:none; }
+.news-src  { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--accent); margin-bottom:3px; }
+.news-ttl  { font-size:12px; line-height:1.5; }
+.news-ttl a { color:var(--text); text-decoration:none; }
+.news-ttl a:hover { color:var(--cyan); }
+.news-sent { font-size:10px; margin-top:3px; }
+
+/* ── OUTLOOK ── */
+.outlook-item { padding:9px 12px; border-radius:8px; margin-bottom:8px; font-size:12px; line-height:1.6; }
+.outlook-item.base { background:rgba(124,106,245,.06); border-left:2px solid var(--accent); }
+.outlook-item.bull { background:rgba(52,211,153,.06);  border-left:2px solid var(--green); }
+.outlook-item.bear { background:rgba(248,113,113,.06); border-left:2px solid var(--red); }
+.outlook-lbl { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+
+/* ── EMPTY / LOADING ── */
+.empty { color:var(--sub); font-size:13px; padding:24px; text-align:center; }
+.loading-wrap { display:flex; align-items:center; justify-content:center; padding:40px; gap:10px; color:var(--sub); font-size:13px; }
+.spin { width:16px; height:16px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px) {
+  .stat-row     { grid-template-columns:repeat(2,1fr); }
+  .main-grid    { grid-template-columns:1fr; }
+  .bottom-grid  { grid-template-columns:1fr 1fr; }
+}
+@media(max-width:640px) {
+  .body         { padding:20px 16px 40px; }
+  .header       { padding:0 16px; }
+  .market-tabs  { display:none; }
+  .stat-row     { grid-template-columns:1fr 1fr; }
+  .bottom-grid  { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="brand">
+    <span class="brand-name">Batuka Bhairava</span>
+    <span class="brand-sub">Intelligence Dashboard</span>
+  </div>
+  <div class="market-tabs" id="tabs"></div>
+  <div class="header-right">
+    <span class="last-update" id="last-update">—</span>
+    <span class="regime-pill UNKNOWN" id="regime-pill">—</span>
+  </div>
+</header>
+
+<div class="body">
+  <div id="loading" class="loading-wrap">
+    <div class="spin"></div> Loading market data…
+  </div>
+  <div id="dashboard" style="display:none">
+    <!-- Stat row -->
+    <div class="stat-row" id="stat-row"></div>
+    <!-- Main grid: picks + sectors -->
+    <div class="main-grid">
+      <div class="card" id="picks-card">
+        <div class="card-label">BTST Picks</div>
+        <div id="picks-body"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Sector Strength</div>
+        <div id="sector-body"></div>
+      </div>
+    </div>
+    <!-- Bottom: news + outlook + MoM -->
+    <div class="bottom-grid">
+      <div class="card">
+        <div class="card-label">News Intelligence</div>
+        <div id="news-body"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Tomorrow Outlook</div>
+        <div id="outlook-body"></div>
+      </div>
+      <div class="card">
+        <div class="card-label">Man of the Match</div>
+        <div id="mom-body"></div>
+      </div>
+    </div>
+  </div>
+  <div id="error-msg" style="display:none; text-align:center; padding:60px; color:var(--sub);">
+    <div style="font-size:28px; margin-bottom:12px;">📭</div>
+    <div id="error-text">No data yet. Run the Batuka engine first.</div>
+  </div>
+</div>
+
+<script>
+const MARKETS = ["IN","US","UK","SG"];
+const LABELS  = { IN:"🇮🇳 India", US:"🇺🇸 USA", UK:"🇬🇧 UK", SG:"🇸🇬 SGX" };
+let active = "IN";
+
+// ── Build tabs ────────────────────────────────────────────────────────────
+function buildTabs() {
+  const container = document.getElementById("tabs");
+  MARKETS.forEach(m => {
+    const btn = document.createElement("button");
+    btn.className = "tab" + (m === active ? " active" : "");
+    btn.textContent = LABELS[m];
+    btn.onclick = () => { active = m; load(m); buildTabs(); };
+    container.appendChild(btn);
+  });
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+const esc = s => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const sign = v => v >= 0 ? "+" : "";
+const cls  = v => v >= 0 ? "pos" : "neg";
+const fmt  = (v, dp=2) => v != null ? Number(v).toFixed(dp) : "—";
+
+// ── Load data ─────────────────────────────────────────────────────────────
+async function load(market) {
+  document.getElementById("loading").style.display = "flex";
+  document.getElementById("dashboard").style.display = "none";
+  document.getElementById("error-msg").style.display = "none";
+
+  // Try the JSON file written by run_engine.py
+  const url = `data/${market}.json?t=${Date.now()}`;
+  let d;
+  try {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error("not found");
+    d = await r.json();
+  } catch {
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("error-msg").style.display = "block";
+    document.getElementById("error-text").textContent =
+      `No data for ${LABELS[market]} yet. Run the Batuka engine with MARKET=${market}.`;
+    return;
+  }
+
+  render(d);
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function render(d) {
+  const cur = esc(d.currency ?? "₹");
+
+  // Header
+  const regime = d.regime ?? "UNKNOWN";
+  const pill = document.getElementById("regime-pill");
+  pill.textContent = regime;
+  pill.className = `regime-pill ${regime}`;
+
+  const ts = d.generated_at ? new Date(d.generated_at).toLocaleString() : "—";
+  document.getElementById("last-update").textContent = `Updated: ${ts}`;
+
+  // Stat row
+  document.getElementById("stat-row").innerHTML = `
+    <div class="card">
+      <div class="card-label">${esc(d.index_label ?? "Index")}</div>
+      <div class="stat-val">${cur}${d.index_close != null ? Number(d.index_close).toLocaleString() : "—"}</div>
+      <div class="stat-sub">SMA20: ${cur}${d.index_sma20 != null ? Number(d.index_sma20).toLocaleString() : "—"}</div>
+    </div>
+    <div class="card">
+      <div class="card-label">BTST Picks</div>
+      <div class="stat-val" style="color:var(--cyan)">${(d.btst_cards ?? []).length}</div>
+      <div class="stat-sub">Conviction ≥ 70/100</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Stocks Scanned</div>
+      <div class="stat-val">${d.total_scanned ?? "—"}</div>
+      <div class="stat-sub">${esc(d.market_name ?? "")}</div>
+    </div>
+    <div class="card">
+      <div class="card-label">News Sentiment</div>
+      <div class="stat-val" style="color:${
+        (d.news_sentiment??0.5) > 0.55 ? "var(--green)"
+        : (d.news_sentiment??0.5) < 0.45 ? "var(--red)"
+        : "var(--amber)"}">${d.news_sentiment != null ? Math.round(d.news_sentiment*100)+"%" : "—"}</div>
+      <div class="stat-sub">${
+        (d.news_sentiment??0.5) > 0.55 ? "Bullish"
+        : (d.news_sentiment??0.5) < 0.45 ? "Bearish"
+        : "Neutral"}</div>
+    </div>
+  `;
+
+  // Picks
+  const cards = d.btst_cards ?? [];
+  if (!cards.length) {
+    document.getElementById("picks-body").innerHTML =
+      `<div class="empty">No picks today — regime may be bearish or conviction too low.</div>`;
+  } else {
+    document.getElementById("picks-body").innerHTML = `
+      <table class="picks-table">
+        <thead><tr>
+          <th>Stock</th><th>Buy Zone</th><th>Target</th><th>Stop</th>
+          <th>Qty</th><th>R:R</th><th>Conv.</th><th>Chg</th>
+        </tr></thead>
+        <tbody>
+        ${cards.map(c => {
+          const chg = c.day_change_pct ?? 0;
+          return `<tr>
+            <td><div class="sname">${esc(c.name ?? c.symbol)}</div>
+                <div class="ssym">${esc(c.symbol)}</div></td>
+            <td><div class="buy-zone">${cur}${fmt(c.buy_low,0)}–${cur}${fmt(c.buy_high,0)}</div>
+                <div style="font-size:10px;color:var(--sub);margin-top:2px">Close: ${cur}${fmt(c.entry??c.close)}</div></td>
+            <td style="font-family:'Space Mono',monospace;font-size:12px;color:var(--green)">${cur}${fmt(c.target)}</td>
+            <td style="font-family:'Space Mono',monospace;font-size:12px;color:var(--red)">${cur}${fmt(c.stop)}</td>
+            <td style="font-family:'Space Mono',monospace;font-size:13px;font-weight:600">${c.qty ?? "—"}</td>
+            <td style="font-family:'Space Mono',monospace;font-size:12px;color:var(--accent)">${fmt(c.rr)}x</td>
+            <td class="conv-wrap">
+              <div style="font-size:11px;color:var(--sub)">${fmt(c.conviction,0)}/100</div>
+              <div class="conv-bar-bg"><div class="conv-bar" style="width:${c.conviction??0}%"></div></div>
+            </td>
+            <td class="${cls(chg)}" style="font-family:'Space Mono',monospace;font-size:12px">
+              ${sign(chg)}${fmt(chg)}%
+            </td>
+          </tr>`;
+        }).join("")}
+        </tbody>
+      </table>`;
+  }
+
+  // Sectors
+  const sectors = d.sector_table ?? [];
+  const maxAbs = Math.max(...sectors.map(s => Math.abs(s.avg_change_pct ?? 0)), 0.01);
+  document.getElementById("sector-body").innerHTML = sectors.slice(0,10).map(s => {
+    const pct = s.avg_change_pct ?? 0;
+    const w   = Math.min(100, Math.abs(pct) / maxAbs * 100);
+    const col = pct >= 0 ? "var(--green)" : "var(--red)";
+    return `<div class="sec-row">
+      <div class="sec-name">${esc(s.sector)}</div>
+      <div class="sec-bar-bg"><div class="sec-bar" style="width:${w}%;background:${col}"></div></div>
+      <div class="sec-pct ${cls(pct)}">${sign(pct)}${fmt(pct)}%</div>
+    </div>`;
+  }).join("") || `<div class="empty">No sector data.</div>`;
+
+  // News
+  const news = d.news_drivers ?? [];
+  document.getElementById("news-body").innerHTML = news.slice(0,6).map(n => {
+    const src   = typeof n === "object" ? n.source : "";
+    const title = typeof n === "object" ? n.title  : n;
+    const link  = typeof n === "object" ? n.link   : "";
+    const sent  = typeof n === "object" ? n.sentiment : 0.5;
+    const sentLabel = sent > 0.55 ? `<span style="color:var(--green)">▲ Bullish</span>`
+                    : sent < 0.45 ? `<span style="color:var(--red)">▼ Bearish</span>`
+                    : `<span style="color:var(--sub)">— Neutral</span>`;
+    return `<div class="news-item">
+      ${src ? `<div class="news-src">${esc(src)}</div>` : ""}
+      <div class="news-ttl">${link
+        ? `<a href="${esc(link)}" target="_blank" rel="noopener">${esc(title)}</a>`
+        : esc(title)}</div>
+      <div class="news-sent">${sentLabel}</div>
+    </div>`;
+  }).join("") || `<div class="empty">No news loaded.</div>`;
+
+  // Outlook
+  const tmr = d.tomorrow ?? {};
+  document.getElementById("outlook-body").innerHTML = [
+    { key:"base", lbl:"Base Case", cls:"base" },
+    { key:"bull", lbl:"Bull Case", cls:"bull" },
+    { key:"bear", lbl:"Bear Case", cls:"bear" },
+  ].map(({ key, lbl, cls }) => tmr[key] ? `
+    <div class="outlook-item ${cls}">
+      <div class="outlook-lbl">${lbl}</div>
+      ${esc(tmr[key])}
+    </div>` : "").join("") || `<div class="empty">No outlook data.</div>`;
+
+  // Man of the Match
+  const mom = d.man_of_match;
+  if (mom) {
+    const chg = mom.day_change_pct ?? mom.pct_change ?? 0;
+    document.getElementById("mom-body").innerHTML = `
+      <div style="margin-bottom:14px">
+        <div style="font-size:16px;font-weight:700;margin-bottom:4px">${esc(mom.name ?? mom.symbol)}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--sub)">${esc(mom.symbol)}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div class="card-label" style="margin-bottom:4px">Open</div>
+          <div style="font-weight:600">${cur}${fmt(mom.open)}</div></div>
+        <div><div class="card-label" style="margin-bottom:4px">Close</div>
+          <div style="font-weight:600">${cur}${fmt(mom.close)}</div></div>
+        <div><div class="card-label" style="margin-bottom:4px">Change</div>
+          <div class="${cls(chg)}" style="font-weight:600">${sign(chg)}${fmt(chg)}%</div></div>
+        <div><div class="card-label" style="margin-bottom:4px">Sector</div>
+          <div style="font-size:12px;color:var(--sub)">${esc(mom.sector ?? "—")}</div></div>
+      </div>`;
+  } else {
+    document.getElementById("mom-body").innerHTML = `<div class="empty">No data.</div>`;
+  }
+
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+buildTabs();
+load(active);
+</script>
+</body>
+</html>
