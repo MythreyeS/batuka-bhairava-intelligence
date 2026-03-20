@@ -1,14 +1,14 @@
 # batuka_bhairav/core/man_of_match.py
 from __future__ import annotations
 
-from typing import List, Dict
+from typing import List, Dict, Optional
 from batuka_bhairav.config import MOM_MIN_ABS_PCT_MOVE, MOM_MIN_VOL_RATIO
 
 
-def pick_man_of_match(rows: List[Dict]) -> List[Dict]:
+def pick_man_of_match(rows: List[Dict]) -> Optional[Dict]:
     """
-    rows: list of {symbol, sector, open, close, prev_close, day_change_pct, vol_ratio, ...}
-    returns all stocks that are "meaningful movers"
+    Returns the single best mover of the day as a dict.
+    Returns None if no meaningful movers found.
     """
     mom = []
     for r in rows:
@@ -19,6 +19,8 @@ def pick_man_of_match(rows: List[Dict]) -> List[Dict]:
             mom.append(r)
             continue
 
-    # Sort by impact: abs change then volume ratio
-    mom.sort(key=lambda x: (abs(x.get("day_change_pct", 0.0)), x.get("vol_ratio", 1.0)), reverse=True)
-    return mom
+    mom.sort(
+        key=lambda x: (abs(x.get("day_change_pct", 0.0)), x.get("vol_ratio", 1.0)),
+        reverse=True,
+    )
+    return mom[0] if mom else (rows[0] if rows else None)
