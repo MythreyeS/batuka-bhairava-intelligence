@@ -1,6 +1,5 @@
 # batuka_bhairav/core/man_of_match.py
 from __future__ import annotations
-
 from typing import List, Dict, Optional
 from batuka_bhairav.config import MOM_MIN_ABS_PCT_MOVE, MOM_MIN_VOL_RATIO
 
@@ -8,7 +7,7 @@ from batuka_bhairav.config import MOM_MIN_ABS_PCT_MOVE, MOM_MIN_VOL_RATIO
 def pick_man_of_match(rows: List[Dict]) -> Optional[Dict]:
     """
     Returns the single best mover of the day as a dict.
-    Returns None if no meaningful movers found.
+    Returns None if no rows provided.
     """
     mom = []
     for r in rows:

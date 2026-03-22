@@ -4,18 +4,20 @@ on:
   workflow_dispatch:
     inputs:
       market:
-        description: "Market to run (IN / US / UK / SG)"
+        description: "Market (IN / US / UK / SG)"
         default: "IN"
+        required: true
+      run_type:
+        description: "Run type (MORNING / BTST / CLOSING / WEEKEND)"
+        default: "BTST"
         required: true
 
   schedule:
-    # ── India — post-market 3:40 PM IST = 10:10 UTC (Mon-Fri)
-    - cron: '10 10 * * 1-5'
-    # ── India — pre-market 8:45 AM IST = 3:15 UTC (Mon-Fri)
-    - cron: '15 3 * * 1-5'
-    # ── USA — post-market 4:30 PM EST = 21:30 UTC (Mon-Fri)
+    - cron: '0 4 * * 1-5'
+    - cron: '30 9 * * 1-5'
+    - cron: '20 10 * * 1-5'
+    - cron: '30 12 * * 6'
     - cron: '30 21 * * 1-5'
-    # ── UK — post-market 4:45 PM GMT = 16:45 UTC (Mon-Fri)
     - cron: '45 16 * * 1-5'
 
 jobs:
@@ -28,6 +30,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -35,33 +39,47 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
-      - name: Detect market from schedule
+      - name: Detect market and run type
         id: detect
         run: |
           if [ -n "${{ github.event.inputs.market }}" ]; then
             echo "market=${{ github.event.inputs.market }}" >> $GITHUB_OUTPUT
+            echo "run_type=${{ github.event.inputs.run_type }}" >> $GITHUB_OUTPUT
           else
             HOUR=$(date -u +%H)
-            if [ "$HOUR" = "21" ]; then
+            DOW=$(date -u +%u)
+            if [ "$DOW" -ge "6" ]; then
+              echo "market=IN" >> $GITHUB_OUTPUT
+              echo "run_type=WEEKEND" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" = "21" ]; then
               echo "market=US" >> $GITHUB_OUTPUT
+              echo "run_type=BTST" >> $GITHUB_OUTPUT
             elif [ "$HOUR" = "16" ]; then
               echo "market=UK" >> $GITHUB_OUTPUT
+              echo "run_type=BTST" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" = "04" ]; then
+              echo "market=IN" >> $GITHUB_OUTPUT
+              echo "run_type=MORNING" >> $GITHUB_OUTPUT
+            elif [ "$HOUR" = "09" ]; then
+              echo "market=IN" >> $GITHUB_OUTPUT
+              echo "run_type=BTST" >> $GITHUB_OUTPUT
             else
               echo "market=IN" >> $GITHUB_OUTPUT
+              echo "run_type=CLOSING" >> $GITHUB_OUTPUT
             fi
           fi
 
       - name: Run Batuka Engine
         env:
           MARKET:           ${{ steps.detect.outputs.market }}
+          RUN_TYPE:         ${{ steps.detect.outputs.run_type }}
           TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           BTST_CAPITAL:     ${{ secrets.BTST_CAPITAL || '5000' }}
         run: |
-          echo "Running for market: $MARKET"
+          echo "Market: $MARKET | RunType: $RUN_TYPE"
           python -m batuka_bhairav.run_engine
 
       - name: Commit dashboard JSON
@@ -70,5 +88,5 @@ jobs:
           git config user.email "bot@batuka.ai"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git add docs/data/
-          git diff --staged --quiet || git commit -m "dashboard: update ${{ steps.detect.outputs.market }} data [skip ci]"
+          git diff --staged --quiet || git commit -m "dashboard: ${{ steps.detect.outputs.market }} [${{ steps.detect.outputs.run_type }}] [skip ci]"
           git push

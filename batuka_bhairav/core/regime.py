@@ -1,7 +1,5 @@
 # batuka_bhairav/core/regime.py
 from __future__ import annotations
-
-import pandas as pd
 from batuka_bhairav.config import INDEX_SYMBOL
 from batuka_bhairav.providers.prices import fetch_ohlcv_batch
 
