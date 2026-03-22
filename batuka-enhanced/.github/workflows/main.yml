@@ -41,16 +41,10 @@ jobs:
       - name: Detect market from schedule
         id: detect
         run: |
-          # If manually triggered, use input; otherwise detect from time
           if [ -n "${{ github.event.inputs.market }}" ]; then
             echo "market=${{ github.event.inputs.market }}" >> $GITHUB_OUTPUT
           else
             HOUR=$(date -u +%H)
-            MIN=$(date -u +%M)
-            # 10:10 UTC → India post-market
-            # 03:15 UTC → India pre-market
-            # 21:30 UTC → USA
-            # 16:45 UTC → UK
             if [ "$HOUR" = "21" ]; then
               echo "market=US" >> $GITHUB_OUTPUT
             elif [ "$HOUR" = "16" ]; then
@@ -74,6 +68,7 @@ jobs:
         run: |
           git config user.name  "Batuka Bot"
           git config user.email "bot@batuka.ai"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git add docs/data/
           git diff --staged --quiet || git commit -m "dashboard: update ${{ steps.detect.outputs.market }} data [skip ci]"
           git push
