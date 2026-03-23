@@ -2,7 +2,7 @@
   "market_code": "IN",
   "market_name": "India (NSE)",
   "currency": "\u20b9",
-  "generated_at": "2026-03-23T16:47:31.792494+05:30",
+  "generated_at": "2026-03-23T23:10:41.218560+05:30",
   "regime": "NEUTRAL",
   "index_label": "NIFTY 50",
   "index_close": null,
@@ -99,42 +99,42 @@
   "news_drivers": [
     {
       "source": "Economic Times",
-      "title": "13 stocks fall up to 45% in 3 months; FII stake cuts and weak earnings",
-      "link": "https://economictimes.indiatimes.com/markets/stocks/news/13-stocks-fall-up-to-45-in-3-months-fii-stake-cuts-and-weak-earnings/slideshow/129749689.cms",
-      "sentiment": 0.14
-    },
-    {
-      "source": "Economic Times",
-      "title": "Vedanta declares Rs 11/share interim dividend; total payout at Rs 4,300 crore. Check record date",
-      "link": "https://economictimes.indiatimes.com/markets/stocks/news/vedanta-declares-rs-11/share-dividend-total-payout-at-rs-4300-crore/articleshow/129748270.cms",
-      "sentiment": 0.62
-    },
-    {
-      "source": "Economic Times",
-      "title": "Nifty Bank cracks 3% to 11-month low as SBI, HDFC &amp; Union Bank tumble. More pain ahead?",
-      "link": "https://economictimes.indiatimes.com/markets/stocks/news/nifty-bank-sinks-3-to-11-month-low-as-sbi-hdfc-union-bank-tumble-more-pain-ahead/articleshow/129745692.cms",
-      "sentiment": 0.38
-    },
-    {
-      "source": "Economic Times",
-      "title": "Dalal Street Bloodbath: Rs 11 lakh cr wiped out as Sensex sinks 1,800 pts, Nifty below 22,550",
-      "link": "https://economictimes.indiatimes.com/markets/stocks/news/dalal-street-bloodbath-rs-11-lakh-cr-wiped-out-as-sensex-sinks-1800-pts-nifty-below-22550/videoshow/129744100.cms",
-      "sentiment": 0.38
-    },
-    {
-      "source": "Economic Times",
-      "title": "Global Market | Cash is King: Investors flee stocks, park billions in cash Aamid oil shock and inflation fears",
-      "link": "https://economictimes.indiatimes.com/markets/stocks/news/global-market-cash-is-king-investors-flee-stocks-park-billions-in-cash-aamid-oil-shock-and-inflation-fears/articleshow/129743680.cms",
-      "sentiment": 0.26
-    },
-    {
-      "source": "Economic Times",
-      "title": "Vedanta shares plunge 5% as SC rules conglomerate not entitled to concessional rates for high-speed diesel",
-      "link": "https://economictimes.indiatimes.com/markets/stocks/news/vedanta-shares-plunge-5-as-sc-rules-conglomerate-not-entitled-to-concessional-rates-for-high-speed-diesel/articleshow/129743615.cms",
+      "title": "Ahead of Market: 10 things that will decide stock market action on Tuesday",
+      "link": "https://economictimes.indiatimes.com/markets/stocks/news/ahead-of-market-10-things-that-will-decide-stock-market-action-on-tuesday/articleshow/129757097.cms",
       "sentiment": 0.5
+    },
+    {
+      "source": "Economic Times",
+      "title": "Market Trading Guide: Buy Gujarat Fluorochemicals and HCL on Tuesday for gains up to 11%",
+      "link": "https://economictimes.indiatimes.com/markets/stocks/news/market-trading-guide-buy-gujarat-fluorochemicals-and-hcl-on-tuesday-for-gains-up-to-11/articleshow/129756802.cms",
+      "sentiment": 0.74
+    },
+    {
+      "source": "Economic Times",
+      "title": "Brand Concepts bulk deal: Ashish Kacholia exits microcap as stock price erodes 36% in a year",
+      "link": "https://economictimes.indiatimes.com/markets/stocks/news/brand-concepts-bulk-deal-ashish-kacholia-exits-microcap-as-stock-price-erodes-36-in-a-year/articleshow/129756498.cms",
+      "sentiment": 0.5
+    },
+    {
+      "source": "Economic Times",
+      "title": "HDFC Bank, Kotak Mahindra Bank among 12 Sensex stocks hit 52-week lows; slip up to 21% in a month",
+      "link": "https://economictimes.indiatimes.com/markets/stocks/news/hdfc-bank-kotak-mahindra-bank-among-12-sensex-stocks-hit-52-week-lows-slip-up-to-21-in-a-month/slideshow/129754395.cms",
+      "sentiment": 0.5
+    },
+    {
+      "source": "Economic Times",
+      "title": "Sebi eases FPI settlement norms, simplifies IPO disclosure framework",
+      "link": "https://economictimes.indiatimes.com/markets/stocks/news/sebi-eases-fpi-settlement-norms-simplifies-ipo-disclosure-framework/articleshow/129753575.cms",
+      "sentiment": 0.5
+    },
+    {
+      "source": "Economic Times",
+      "title": "Gainers &amp; Losers: HDFC Bank, Gujarat Alkalies among 6 top movers on Monday",
+      "link": "https://economictimes.indiatimes.com/markets/stocks/news/gainers-amp-losers-hdfc-bank-gujarat-alkalies-among-6-top-movers-on-monday/slideshow/129753297.cms",
+      "sentiment": 0.62
     }
   ],
-  "news_sentiment": 0.52,
+  "news_sentiment": 0.51,
   "btst_cards": [
     {
       "symbol": "TRIDENT.NS",
@@ -146,7 +146,7 @@
       "buy_low": 20,
       "buy_high": 30,
       "name": "Trident Ltd.",
-      "conviction": 73.23,
+      "conviction": 73.03,
       "day_change_pct": 3.3,
       "sector": "Textiles",
       "currency": "\u20b9",
