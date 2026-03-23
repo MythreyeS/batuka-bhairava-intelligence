@@ -1,0 +1,357 @@
+{
+  "market_code": "IN",
+  "market_name": "India (NSE)",
+  "currency": "\u20b9",
+  "generated_at": "2026-03-23T16:47:31.792494+05:30",
+  "regime": "NEUTRAL",
+  "index_label": "NIFTY 50",
+  "index_close": null,
+  "index_sma20": null,
+  "total_scanned": 495,
+  "run_type": "CLOSING",
+  "sector_table": [
+    {
+      "sector": "Textiles",
+      "avg_change_pct": -1.16,
+      "breadth": 0.33,
+      "count": 6
+    },
+    {
+      "sector": "Healthcare",
+      "avg_change_pct": -2.53,
+      "breadth": 0.04,
+      "count": 52
+    },
+    {
+      "sector": "Information Technology",
+      "avg_change_pct": -2.82,
+      "breadth": 0.14,
+      "count": 28
+    },
+    {
+      "sector": "Fast Moving Consumer Goods",
+      "avg_change_pct": -3.19,
+      "breadth": 0.0,
+      "count": 30
+    },
+    {
+      "sector": "Media Entertainment & Publication",
+      "avg_change_pct": -3.31,
+      "breadth": 0.25,
+      "count": 4
+    },
+    {
+      "sector": "Diversified",
+      "avg_change_pct": -3.48,
+      "breadth": 0.0,
+      "count": 3
+    },
+    {
+      "sector": "Chemicals",
+      "avg_change_pct": -3.62,
+      "breadth": 0.04,
+      "count": 26
+    },
+    {
+      "sector": "Construction Materials",
+      "avg_change_pct": -3.85,
+      "breadth": 0.0,
+      "count": 11
+    },
+    {
+      "sector": "Automobile and Auto Components",
+      "avg_change_pct": -3.86,
+      "breadth": 0.0,
+      "count": 33
+    },
+    {
+      "sector": "Consumer Services",
+      "avg_change_pct": -3.94,
+      "breadth": 0.0,
+      "count": 26
+    }
+  ],
+  "man_of_match": {
+    "symbol": "FIRSTCRY.NS",
+    "name": "Brainbees Solutions Ltd.",
+    "sector": "Consumer Services",
+    "open": 245.0,
+    "close": 220.97,
+    "high": 245.85,
+    "low": 218.02,
+    "prev_close": 250.87,
+    "atr": 3.31,
+    "day_change_pct": -11.92,
+    "gap_pct": -2.34,
+    "intraday_pct": -9.81,
+    "mom_1d": -0.1192,
+    "mom_5d": 3.23,
+    "mom_20d": 0.74,
+    "mom_60d": -25.52,
+    "vol_ratio": 0.42,
+    "close_near_high": 0.0,
+    "above_sma20": 1.0,
+    "above_sma50": 0.0,
+    "rsi": 50.0,
+    "sma20": 218.27,
+    "sma50": 245.52
+  },
+  "news_drivers": [
+    {
+      "source": "Economic Times",
+      "title": "13 stocks fall up to 45% in 3 months; FII stake cuts and weak earnings",
+      "link": "https://economictimes.indiatimes.com/markets/stocks/news/13-stocks-fall-up-to-45-in-3-months-fii-stake-cuts-and-weak-earnings/slideshow/129749689.cms",
+      "sentiment": 0.14
+    },
+    {
+      "source": "Economic Times",
+      "title": "Vedanta declares Rs 11/share interim dividend; total payout at Rs 4,300 crore. Check record date",
+      "link": "https://economictimes.indiatimes.com/markets/stocks/news/vedanta-declares-rs-11/share-dividend-total-payout-at-rs-4300-crore/articleshow/129748270.cms",
+      "sentiment": 0.62
+    },
+    {
+      "source": "Economic Times",
+      "title": "Nifty Bank cracks 3% to 11-month low as SBI, HDFC &amp; Union Bank tumble. More pain ahead?",
+      "link": "https://economictimes.indiatimes.com/markets/stocks/news/nifty-bank-sinks-3-to-11-month-low-as-sbi-hdfc-union-bank-tumble-more-pain-ahead/articleshow/129745692.cms",
+      "sentiment": 0.38
+    },
+    {
+      "source": "Economic Times",
+      "title": "Dalal Street Bloodbath: Rs 11 lakh cr wiped out as Sensex sinks 1,800 pts, Nifty below 22,550",
+      "link": "https://economictimes.indiatimes.com/markets/stocks/news/dalal-street-bloodbath-rs-11-lakh-cr-wiped-out-as-sensex-sinks-1800-pts-nifty-below-22550/videoshow/129744100.cms",
+      "sentiment": 0.38
+    },
+    {
+      "source": "Economic Times",
+      "title": "Global Market | Cash is King: Investors flee stocks, park billions in cash Aamid oil shock and inflation fears",
+      "link": "https://economictimes.indiatimes.com/markets/stocks/news/global-market-cash-is-king-investors-flee-stocks-park-billions-in-cash-aamid-oil-shock-and-inflation-fears/articleshow/129743680.cms",
+      "sentiment": 0.26
+    },
+    {
+      "source": "Economic Times",
+      "title": "Vedanta shares plunge 5% as SC rules conglomerate not entitled to concessional rates for high-speed diesel",
+      "link": "https://economictimes.indiatimes.com/markets/stocks/news/vedanta-shares-plunge-5-as-sc-rules-conglomerate-not-entitled-to-concessional-rates-for-high-speed-diesel/articleshow/129743615.cms",
+      "sentiment": 0.5
+    }
+  ],
+  "news_sentiment": 0.52,
+  "btst_cards": [
+    {
+      "symbol": "TRIDENT.NS",
+      "entry": 25.05,
+      "target": 25.55,
+      "stop": 24.8,
+      "qty": 199,
+      "rr": 2.0,
+      "buy_low": 20,
+      "buy_high": 30,
+      "name": "Trident Ltd.",
+      "conviction": 73.23,
+      "day_change_pct": 3.3,
+      "sector": "Textiles",
+      "currency": "\u20b9",
+      "vol_ratio": 3.36,
+      "intraday_pct": 6.14,
+      "rsi": 50.0
+    }
+  ],
+  "intraday_cards": [
+    {
+      "symbol": "SUNTV.NS",
+      "name": "Sun TV Network Ltd.",
+      "entry": 599.1,
+      "buy_low": 600,
+      "buy_high": 600,
+      "target": 608.09,
+      "stop": 594.61,
+      "qty": 8,
+      "rr": 2.0,
+      "currency": "\u20b9",
+      "day_change_pct": 1.04,
+      "intraday_pct": 1.04,
+      "vol_ratio": 11.42,
+      "rsi": 50.0,
+      "conviction": 77.83,
+      "sector": "Media Entertainment & Publication"
+    },
+    {
+      "symbol": "FLUOROCHEM.NS",
+      "name": "Gujarat Fluorochemicals Ltd.",
+      "entry": 3248.2,
+      "buy_low": 3240,
+      "buy_high": 3255,
+      "target": 3296.92,
+      "stop": 3223.84,
+      "qty": 1,
+      "rr": 2.0,
+      "currency": "\u20b9",
+      "day_change_pct": 2.02,
+      "intraday_pct": 2.3,
+      "vol_ratio": 2.46,
+      "rsi": 50.0,
+      "conviction": 77.73,
+      "sector": "Chemicals"
+    },
+    {
+      "symbol": "KPRMILL.NS",
+      "name": "K.P.R. Mill Ltd.",
+      "entry": 822.75,
+      "buy_low": 820,
+      "buy_high": 825,
+      "target": 835.09,
+      "stop": 816.58,
+      "qty": 6,
+      "rr": 2.0,
+      "currency": "\u20b9",
+      "day_change_pct": -0.04,
+      "intraday_pct": 0.59,
+      "vol_ratio": 3.07,
+      "rsi": 50.0,
+      "conviction": 72.02,
+      "sector": "Textiles"
+    },
+    {
+      "symbol": "APARINDS.NS",
+      "name": "Apar Industries Ltd.",
+      "entry": 9805.0,
+      "buy_low": 9785,
+      "buy_high": 9825,
+      "target": 9952.07,
+      "stop": 9731.47,
+      "qty": 1,
+      "rr": 2.0,
+      "currency": "\u20b9",
+      "day_change_pct": 1.36,
+      "intraday_pct": 1.66,
+      "vol_ratio": 1.38,
+      "rsi": 50.0,
+      "conviction": 67.8,
+      "sector": "Capital Goods"
+    },
+    {
+      "symbol": "CARBORUNIV.NS",
+      "name": "Carborundum Universal Ltd.",
+      "entry": 755.45,
+      "buy_low": 755,
+      "buy_high": 755,
+      "target": 766.78,
+      "stop": 749.79,
+      "qty": 6,
+      "rr": 2.0,
+      "currency": "\u20b9",
+      "day_change_pct": -0.2,
+      "intraday_pct": 0.15,
+      "vol_ratio": 2.15,
+      "rsi": 50.0,
+      "conviction": 66.27,
+      "sector": "Capital Goods"
+    }
+  ],
+  "longterm_cards": [
+    {
+      "symbol": "CHENNPETRO.NS",
+      "name": "Chennai Petroleum Corporation Ltd.",
+      "close": 1004.55,
+      "buy_low": 970,
+      "buy_high": 1000,
+      "target": 1125.1,
+      "stop": 974.41,
+      "qty": 14,
+      "rr": 4.0,
+      "currency": "\u20b9",
+      "day_change_pct": -5.65,
+      "mom_20d": 13.68,
+      "mom_60d": 18.43,
+      "rsi": 50.0,
+      "above_sma20": 1.0,
+      "above_sma50": 1.0,
+      "conviction": 85.12,
+      "sector": "Oil Gas & Consumable Fuels"
+    },
+    {
+      "symbol": "AUROPHARMA.NS",
+      "name": "Aurobindo Pharma Ltd.",
+      "close": 1278.7,
+      "buy_low": 1250,
+      "buy_high": 1280,
+      "target": 1432.14,
+      "stop": 1240.34,
+      "qty": 11,
+      "rr": 4.0,
+      "currency": "\u20b9",
+      "day_change_pct": -0.98,
+      "mom_20d": 10.35,
+      "mom_60d": 4.98,
+      "rsi": 50.0,
+      "above_sma20": 1.0,
+      "above_sma50": 1.0,
+      "conviction": 83.59,
+      "sector": "Healthcare"
+    },
+    {
+      "symbol": "COALINDIA.NS",
+      "name": "Coal India Ltd.",
+      "close": 455.25,
+      "buy_low": 450,
+      "buy_high": 460,
+      "target": 509.88,
+      "stop": 441.59,
+      "qty": 32,
+      "rr": 4.0,
+      "currency": "\u20b9",
+      "day_change_pct": -2.76,
+      "mom_20d": 7.48,
+      "mom_60d": 14.64,
+      "rsi": 50.0,
+      "above_sma20": 1.0,
+      "above_sma50": 1.0,
+      "conviction": 80.83,
+      "sector": "Oil Gas & Consumable Fuels"
+    },
+    {
+      "symbol": "CCL.NS",
+      "name": "CCL Products (I) Ltd.",
+      "close": 1067.9,
+      "buy_low": 1040,
+      "buy_high": 1070,
+      "target": 1196.05,
+      "stop": 1035.86,
+      "qty": 14,
+      "rr": 4.0,
+      "currency": "\u20b9",
+      "day_change_pct": -1.81,
+      "mom_20d": 7.43,
+      "mom_60d": 12.15,
+      "rsi": 50.0,
+      "above_sma20": 1.0,
+      "above_sma50": 1.0,
+      "conviction": 80.67,
+      "sector": "Fast Moving Consumer Goods"
+    },
+    {
+      "symbol": "KSB.NS",
+      "name": "KSB Ltd.",
+      "close": 782.85,
+      "buy_low": 760,
+      "buy_high": 780,
+      "target": 876.79,
+      "stop": 759.37,
+      "qty": 19,
+      "rr": 4.0,
+      "currency": "\u20b9",
+      "day_change_pct": 0.07,
+      "mom_20d": 8.84,
+      "mom_60d": 1.47,
+      "rsi": 50.0,
+      "above_sma20": 1.0,
+      "above_sma50": 1.0,
+      "conviction": 79.9,
+      "sector": "Capital Goods"
+    }
+  ],
+  "tomorrow": {
+    "base": "Range-to-positive bias if Textiles leadership sustains; watch opening breadth.",
+    "bull": "Breakout continuation possible if early breadth is strong; Textiles could extend.",
+    "bear": "Failure to hold gains may drag; Telecommunication weakness can cap upside."
+  }
+}
