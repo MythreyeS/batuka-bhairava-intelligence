@@ -52,19 +52,16 @@ def get_run_type() -> str:
         return "CLOSING"
 
 
-def load_universe() -> pd.DataFrame:
-    if not os.path.exists(UNIVERSE_CSV):
-        raise FileNotFoundError(f"Universe CSV not found: {UNIVERSE_CSV}")
-    df = pd.read_csv(UNIVERSE_CSV)
-    if "symbol" not in df.columns:
-        raise ValueError("Universe CSV must have a 'symbol' column.")
-    if "sector" not in df.columns:
-        df["sector"] = "UNKNOWN"
-    if "name" not in df.columns and "company" in df.columns:
-        df["name"] = df["company"]
-    elif "name" not in df.columns:
-        df["name"] = df["symbol"]
-    return df[["symbol", "sector", "name"]].dropna(subset=["symbol"])
+def load_universe():
+    """
+    Dynamically fetches the full stock universe for the active market.
+    NSE 500 from NSE official CSV → Wikipedia fallback → cached CSV.
+    S&P 500 from Wikipedia. FTSE 100 from Wikipedia. SGX from cache.
+    """
+    from batuka_bhairav.universe.fetch_universe import load_universe as _fetch
+    rows = _fetch(ACTIVE_MARKET)
+    print(f"[Batuka] Universe loaded: {len(rows)} stocks for {ACTIVE_MARKET}")
+    return rows
 
 
 def _enrich(card, sym, name, conv, chg, sector, currency, features) -> dict:
@@ -99,11 +96,11 @@ def main():
     run_type = get_run_type()
     print(f"[Batuka] Market={ACTIVE_MARKET} | {MARKET_NAME} | RunType={run_type}")
 
-    # 1. Universe
-    uni      = load_universe()
-    symbols  = uni["symbol"].astype(str).tolist()
-    name_map = dict(zip(uni["symbol"], uni["name"]))
-    sec_map  = dict(zip(uni["symbol"], uni["sector"]))
+    # 1. Universe — full live fetch
+    universe = load_universe()
+    symbols  = [u["symbol"] for u in universe]
+    name_map = {u["symbol"]: u.get("name", u["symbol"].replace(".NS","")) for u in universe}
+    sec_map  = {u["symbol"]: u.get("sector", "Unknown") for u in universe}
 
     # 2. Prices
     price_map = fetch_ohlcv_batch(symbols)
