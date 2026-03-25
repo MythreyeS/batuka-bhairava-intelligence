@@ -2,7 +2,7 @@
   "market_code": "IN",
   "market_name": "India (NSE)",
   "currency": "\u20b9",
-  "generated_at": "2026-03-25T15:54:25.767046+05:30",
+  "generated_at": "2026-03-25T16:46:50.135750+05:30",
   "regime": "NEUTRAL",
   "index_label": "NIFTY 50",
   "index_close": null,
@@ -99,6 +99,12 @@
   "news_drivers": [
     {
       "source": "Economic Times",
+      "title": "Itching for profits? Make survival the only goal for now as markets head into holiday phase: Zerodha\u2019s Nithin Kamath",
+      "link": "https://economictimes.indiatimes.com/markets/stocks/news/itching-for-profits-make-survival-the-only-goal-for-now-as-markets-head-into-holiday-phase-zerodhas-nithin-kamath/articleshow/129798882.cms",
+      "sentiment": 0.62
+    },
+    {
+      "source": "Economic Times",
       "title": "Dividend alert! TVS Holdings announces Rs 86 interim dividend; check record date",
       "link": "https://economictimes.indiatimes.com/markets/stocks/news/dividend-alert-tvs-holdings-announces-rs-86-interim-dividend-check-record-date/articleshow/129797193.cms",
       "sentiment": 0.62
@@ -123,18 +129,12 @@
     },
     {
       "source": "Economic Times",
-      "title": "Bharti Airtel Share Price Live Updates: Weekly returns for Bharti Airtel show a decline",
-      "link": "https://economictimes.indiatimes.com/markets/stocks/stock-liveblog/bharti-airtel-ltd-share-price-today-live-updates-25-mar-2026/liveblog/129794321.cms",
-      "sentiment": 0.38
-    },
-    {
-      "source": "Economic Times",
-      "title": "3 growth juggernauts can power 24% surge in Solar Industries shares, says Elara after initiating with Buy",
-      "link": "https://economictimes.indiatimes.com/markets/stocks/news/3-growth-juggernauts-can-power-24-surge-in-solar-industries-shares-says-elara-after-initiating-with-buy/articleshow/129792606.cms",
-      "sentiment": 0.86
+      "title": "Attractive valuations emerging, but oil prices hold the key: Aman Chowhan",
+      "link": "https://economictimes.indiatimes.com/markets/expert-view/attractive-valuations-emerging-but-oil-prices-hold-the-key-aman-chowhan/articleshow/129796065.cms",
+      "sentiment": 0.5
     }
   ],
-  "news_sentiment": 0.53,
+  "news_sentiment": 0.54,
   "btst_cards": [
     {
       "symbol": "KALYANKJIL.NS",
@@ -146,7 +146,7 @@
       "buy_low": 380,
       "buy_high": 390,
       "name": "Kalyan Jewellers India Ltd.",
-      "conviction": 85.12,
+      "conviction": 85.32,
       "day_change_pct": 5.42,
       "sector": "Consumer Durables",
       "currency": "\u20b9",
@@ -164,7 +164,7 @@
       "buy_low": 520,
       "buy_high": 530,
       "name": "Authum Investment & Infrastructure Ltd.",
-      "conviction": 83.87,
+      "conviction": 84.07,
       "day_change_pct": 6.75,
       "sector": "Financial Services",
       "currency": "\u20b9",
@@ -182,7 +182,7 @@
       "buy_low": 170,
       "buy_high": 180,
       "name": "Housing & Urban Development Corporation Ltd.",
-      "conviction": 83.87,
+      "conviction": 84.07,
       "day_change_pct": 4.69,
       "sector": "Financial Services",
       "currency": "\u20b9",
@@ -200,7 +200,7 @@
       "buy_low": 250,
       "buy_high": 250,
       "name": "City Union Bank Ltd.",
-      "conviction": 83.27,
+      "conviction": 83.47,
       "day_change_pct": 7.39,
       "sector": "Financial Services",
       "currency": "\u20b9",
@@ -218,7 +218,7 @@
       "buy_low": 270,
       "buy_high": 280,
       "name": "Godawari Power & Ispat Ltd.",
-      "conviction": 83.19,
+      "conviction": 83.39,
       "day_change_pct": 5.28,
       "sector": "Capital Goods",
       "currency": "\u20b9",
