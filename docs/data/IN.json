@@ -2,7 +2,7 @@
   "market_code": "IN",
   "market_name": "India (NSE)",
   "currency": "\u20b9",
-  "generated_at": "2026-03-30T16:20:17.866689+05:30",
+  "generated_at": "2026-03-30T17:13:29.839439+05:30",
   "regime": "NEUTRAL",
   "index_label": "NIFTY 50",
   "index_close": null,
@@ -99,6 +99,12 @@
   "news_drivers": [
     {
       "source": "Economic Times",
+      "title": "Bajaj Finserv, HDFC Bank among 7 Sensex stocks that hit 52-week lows; slip up to 18% in a month",
+      "link": "https://economictimes.indiatimes.com/markets/stocks/news/bajaj-finserv-hdfc-bank-among-7-sensex-stocks-that-hit-52-week-lows-slip-up-to-18-in-a-month/slideshow/129899488.cms",
+      "sentiment": 0.5
+    },
+    {
+      "source": "Economic Times",
       "title": "Commodity Radar: Despite gold's Rs 55,000 fall from peak, only limited upside and not a breakaway rally seen: Here's why",
       "link": "https://economictimes.indiatimes.com/markets/stocks/news/commodity-radar-despite-golds-rs-55000-fall-from-peak-only-limited-upside-and-not-a-breakaway-rally-seen-heres-why/articleshow/129897375.cms",
       "sentiment": 0.74
@@ -123,15 +129,9 @@
     },
     {
       "source": "Economic Times",
-      "title": "Sun Pharma Share Price Live Updates: Sun Pharma's Price Action Indicates Downtrend",
-      "link": "https://economictimes.indiatimes.com/markets/stocks/stock-liveblog/sun-pharma-share-price-today-live-30-mar-2026/liveblog/129894369.cms",
+      "title": "SBI Share Price Live Updates: SBI's Market Update",
+      "link": "https://economictimes.indiatimes.com/markets/stocks/stock-liveblog/sbi-stock-price-today-live-30-mar-2026/liveblog/129894519.cms",
       "sentiment": 0.5
-    },
-    {
-      "source": "Economic Times",
-      "title": "Defence stocks to fire up? Brokerages bullish after DAC clears Rs 2.38 lakh cr proposals; check top picks",
-      "link": "https://economictimes.indiatimes.com/markets/stocks/news/defence-stocks-to-fire-up-brokerages-bullish-after-dac-clears-rs-2-38-lakh-cr-proposals-check-top-picks/articleshow/129893640.cms",
-      "sentiment": 0.62
     }
   ],
   "news_sentiment": 0.51,
