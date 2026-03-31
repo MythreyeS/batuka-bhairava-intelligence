@@ -147,7 +147,8 @@ def main():
     scored_btst = []
     scored_intraday = []
     scored_longterm = []
-
+    explainability_records = []
+    
     for r in rows:
         sec_score = sector_strength_score(sector_rank, r["sector"])
         scored_btst.append({**r,
