@@ -7,7 +7,7 @@ from batuka_bhairav.config import (
     CONVICTION_WEIGHTS,
 )
 
-from batuka_bhairav.universe.fetch_universe import get_market_rows, get_index_data
+from batuka_bhairav.universe.fetch_universe import fetch_nse500
 
 from batuka_bhairav.core.scoring import (
     conviction_score_0_100,
