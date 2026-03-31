@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 import pytz
 
-# ✅ CONFIG (correct)
+# ✅ CONFIG
 from batuka_bhairav.config import (
     ACTIVE_MARKET,
     MARKET_NAME,
@@ -14,10 +14,10 @@ from batuka_bhairav.config import (
     CONVICTION_WEIGHTS,
 )
 
-# ✅ UNIVERSE (correct file)
+# ✅ UNIVERSE
 from batuka_bhairav.universe.fetch_universe import fetch_nse500
 
-# ✅ CORE MODULES
+# ✅ CORE
 from batuka_bhairav.core.scoring import (
     conviction_score_0_100,
     intraday_score,
@@ -25,10 +25,12 @@ from batuka_bhairav.core.scoring import (
 )
 
 from batuka_bhairav.core.sector import compute_sector_strength
-from batuka_bhairav.providers.news import get_news_drivers, compute_news_sentiment
 from batuka_bhairav.core.regime import detect_market_regime
 from batuka_bhairav.core.dashboard import write_dashboard_json
 from batuka_bhairav.core.explainability import build_explainability_record
+
+# ✅ NEWS (FIXED CORRECTLY)
+from batuka_bhairav.providers.news import fetch_all_news, summarize_news
 
 
 def main():
@@ -43,7 +45,6 @@ def main():
     # -------------------------------
     # STEP 2 — INDEX (TEMP FIX)
     # -------------------------------
-    # ⚠️ You don’t have index function yet
     idx_close = 0
     idx_sma20 = 0
 
@@ -54,14 +55,18 @@ def main():
     print(f"[Batuka] Market regime: {regime}")
 
     # -------------------------------
-    # STEP 4 — NEWS
+    # STEP 4 — NEWS (FIXED)
     # -------------------------------
-    news_drivers = get_news_drivers()
-    news_sentiment = compute_news_sentiment(news_drivers)
+    news_items = fetch_all_news()
+    news_summary = summarize_news(news_items)
+
+    news_drivers = news_summary.get("drivers", [])
+    news_sentiment = news_summary.get("sentiment", 0.5)
+
     print(f"[Batuka] News sentiment: {news_sentiment}")
 
     # -------------------------------
-    # STEP 5 — SECTOR STRENGTH (FIXED)
+    # STEP 5 — SECTOR
     # -------------------------------
     sector_rank, sector_table = compute_sector_strength(rows)
 
@@ -91,7 +96,6 @@ def main():
         scored_intraday.append({**r, "conviction": intraday_conviction})
         scored_longterm.append({**r, "conviction": longterm_conviction})
 
-        # ✅ Explainability
         explainability_records.append(
             build_explainability_record(
                 symbol=r.get("symbol"),
@@ -117,12 +121,12 @@ def main():
     longterm_cards = scored_longterm[:10]
 
     # -------------------------------
-    # STEP 8 — MAN OF THE MATCH
+    # STEP 8 — MAN OF MATCH
     # -------------------------------
     man_of_match = btst_cards[0] if btst_cards else None
 
     # -------------------------------
-    # STEP 9 — TOMORROW OUTLOOK
+    # STEP 9 — TOMORROW
     # -------------------------------
     tomorrow = {
         "regime": regime,
@@ -133,7 +137,7 @@ def main():
     }
 
     # -------------------------------
-    # STEP 10 — WRITE JSON
+    # STEP 10 — JSON OUTPUT
     # -------------------------------
     output_payload = {
         "market_code": ACTIVE_MARKET,
