@@ -28,9 +28,6 @@ from batuka_bhairav.core.sector import compute_sector_strength
 from batuka_bhairav.core.regime import get_market_regime
 from batuka_bhairav.core.explainability import build_explainability_record
 
-# ✅ NEWS
-from batuka_bhairav.providers.news import fetch_all_news, summarize_news
-
 
 def main():
     print(f"[Batuka] Market={ACTIVE_MARKET} | {MARKET_NAME} | RunType=BTST")
@@ -48,15 +45,11 @@ def main():
     print(f"[Batuka] Market regime: {regime}")
 
     # -------------------------------
-    # STEP 3 — NEWS
+    # STEP 3 — NEWS (SKIPPED FOR SPEED)
     # -------------------------------
-    news_items = fetch_all_news()
-    news_summary = summarize_news(news_items)
-
-    news_drivers = news_summary.get("drivers", [])
-    news_sentiment = news_summary.get("sentiment", 0.5)
-
-    print(f"[Batuka] News sentiment: {news_sentiment}")
+    print("[Batuka] Skipping news for faster execution")
+    news_drivers = []
+    news_sentiment = 0.5
 
     # -------------------------------
     # STEP 4 — SECTOR
@@ -126,7 +119,7 @@ def main():
         "bias": "Bullish continuation" if regime == "BULLISH" else
                 "Sideways consolidation" if regime == "NEUTRAL" else
                 "Cautious / Bearish bias",
-        "note": "Based on index trend + sentiment"
+        "note": "Based on index trend"
     }
 
     # -------------------------------
@@ -144,7 +137,7 @@ def main():
         "total_scanned": len(rows),
         "sector_table": sector_table[:10],
         "man_of_match": man_of_match,
-        "news_drivers": news_drivers[:6],
+        "news_drivers": news_drivers,
         "news_sentiment": news_sentiment,
         "btst_cards": btst_cards,
         "intraday_cards": intraday_cards,
@@ -153,7 +146,7 @@ def main():
         "explainability": explainability_records,
     }
 
-    # ✅ FINAL WRITE (NO DASHBOARD DEPENDENCY)
+    # ✅ SAVE OUTPUT
     with open("output.json", "w") as f:
         json.dump(output_payload, f, indent=2)
 
