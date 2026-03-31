@@ -45,7 +45,7 @@ def main():
     print(f"[Batuka] Market regime: {regime}")
 
     # -------------------------------
-    # STEP 3 — NEWS (SKIPPED FOR SPEED)
+    # STEP 3 — NEWS (DISABLED FOR SPEED)
     # -------------------------------
     print("[Batuka] Skipping news for faster execution")
     news_drivers = []
@@ -65,8 +65,9 @@ def main():
     explainability_records = []
 
     for r in rows:
-        # 🔥 FIX: ensure required fields exist
+        # 🔥 CRITICAL FIX: ensure ALL required fields exist
         r.setdefault("day_change_pct", 0.0)
+        r.setdefault("vol_ratio", 1.0)
         r.setdefault("volume", 0.0)
         r.setdefault("price", 0.0)
 
