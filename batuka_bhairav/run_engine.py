@@ -25,6 +25,7 @@ from batuka_bhairav.providers.news     import fetch_all_news, summarize_news
 from batuka_bhairav.core.anticipation  import build_tomorrow_view
 from batuka_bhairav.telegram_message   import render_message
 from batuka_bhairav.telegram           import send_telegram
+from batuka_bhairav.core.explainability import build_explainability_record
 import pandas as pd
 
 
