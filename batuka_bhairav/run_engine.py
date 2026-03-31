@@ -65,9 +65,10 @@ def main():
     explainability_records = []
 
     for r in rows:
-        # 🔥 CRITICAL FIX: ensure ALL required fields exist
+        # 🔥 FINAL FIX: ensure ALL required fields exist
         r.setdefault("day_change_pct", 0.0)
         r.setdefault("vol_ratio", 1.0)
+        r.setdefault("close_near_high", 0.5)
         r.setdefault("volume", 0.0)
         r.setdefault("price", 0.0)
 
