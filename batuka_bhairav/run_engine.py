@@ -4,7 +4,6 @@ import json
 from datetime import datetime
 import pytz
 
-# ✅ CONFIG
 from batuka_bhairav.config import (
     ACTIVE_MARKET,
     MARKET_NAME,
@@ -14,10 +13,8 @@ from batuka_bhairav.config import (
     CONVICTION_WEIGHTS,
 )
 
-# ✅ UNIVERSE
 from batuka_bhairav.universe.fetch_universe import fetch_nse500
 
-# ✅ CORE
 from batuka_bhairav.core.scoring import (
     conviction_score_0_100,
     intraday_score,
@@ -32,57 +29,40 @@ from batuka_bhairav.core.explainability import build_explainability_record
 def main():
     print(f"[Batuka] Market={ACTIVE_MARKET} | {MARKET_NAME} | RunType=BTST")
 
-    # -------------------------------
-    # STEP 1 — FETCH DATA
-    # -------------------------------
     rows = fetch_nse500()
     print(f"[Universe] NSE official: {len(rows)} stocks fetched")
 
-    # -------------------------------
-    # STEP 2 — MARKET REGIME
-    # -------------------------------
     regime = get_market_regime()
     print(f"[Batuka] Market regime: {regime}")
 
-    # -------------------------------
-    # STEP 3 — NEWS (DISABLED FOR SPEED)
-    # -------------------------------
     print("[Batuka] Skipping news for faster execution")
     news_drivers = []
     news_sentiment = 0.5
 
-    # -------------------------------
-    # STEP 4 — SECTOR
-    # -------------------------------
     sector_rank, sector_table = compute_sector_strength(rows)
 
-    # -------------------------------
-    # STEP 5 — SCORING
-    # -------------------------------
     scored_btst = []
     scored_intraday = []
     scored_longterm = []
     explainability_records = []
 
     for r in rows:
-        # 🔥 COMPLETE FINAL FIX — ALL REQUIRED FIELDS
+        # 🔥 FINAL ALL REQUIRED FIELDS
         r.setdefault("day_change_pct", 0.0)
         r.setdefault("vol_ratio", 1.0)
         r.setdefault("close_near_high", 0.5)
         r.setdefault("gap_pct", 0.0)
         r.setdefault("intraday_pct", 0.0)
         r.setdefault("rsi", 50.0)
+        r.setdefault("above_sma20", 0.0)
+        r.setdefault("above_sma50", 0.0)
         r.setdefault("volume", 0.0)
         r.setdefault("price", 0.0)
 
         sec_score = sector_rank.get(r.get("sector"), 0.0)
 
         btst_conviction = conviction_score_0_100(
-            r,
-            sec_score,
-            news_sentiment,
-            regime,
-            CONVICTION_WEIGHTS
+            r, sec_score, news_sentiment, regime, CONVICTION_WEIGHTS
         )
 
         intraday_conviction = intraday_score(r, sec_score, regime)
@@ -105,9 +85,6 @@ def main():
             )
         )
 
-    # -------------------------------
-    # STEP 6 — SORT
-    # -------------------------------
     scored_btst.sort(key=lambda x: x["conviction"], reverse=True)
     scored_intraday.sort(key=lambda x: x["conviction"], reverse=True)
     scored_longterm.sort(key=lambda x: x["conviction"], reverse=True)
@@ -116,25 +93,16 @@ def main():
     intraday_cards = scored_intraday[:10]
     longterm_cards = scored_longterm[:10]
 
-    # -------------------------------
-    # STEP 7 — MAN OF MATCH
-    # -------------------------------
     man_of_match = btst_cards[0] if btst_cards else None
 
-    # -------------------------------
-    # STEP 8 — TOMORROW OUTLOOK
-    # -------------------------------
     tomorrow = {
         "regime": regime,
-        "bias": "Bullish continuation" if regime == "BULLISH" else
-                "Sideways consolidation" if regime == "NEUTRAL" else
-                "Cautious / Bearish bias",
-        "note": "Based on index trend"
+        "bias": "Bullish continuation" if regime == "BULLISH"
+        else "Sideways consolidation" if regime == "NEUTRAL"
+        else "Cautious / Bearish bias",
+        "note": "Based on index trend",
     }
 
-    # -------------------------------
-    # STEP 9 — JSON OUTPUT
-    # -------------------------------
     output_payload = {
         "market_code": ACTIVE_MARKET,
         "market_name": MARKET_NAME,
@@ -156,7 +124,6 @@ def main():
         "explainability": explainability_records,
     }
 
-    # ✅ SAVE OUTPUT
     with open("output.json", "w") as f:
         json.dump(output_payload, f, indent=2)
 
