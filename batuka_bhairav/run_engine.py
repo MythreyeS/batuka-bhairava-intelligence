@@ -5,7 +5,7 @@ from datetime import datetime
 
 import pytz
 
-from batuka_bhairav.core.config import (
+from batuka_bhairav.config import (
     ACTIVE_MARKET,
     MARKET_NAME,
     MARKET_CURRENCY,
