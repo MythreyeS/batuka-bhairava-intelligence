@@ -7,16 +7,16 @@ from batuka_bhairav.config import (
     CONVICTION_WEIGHTS,
 )
 
-from batuka_bhairav.data_fetch import get_market_rows, get_index_data
+from batuka_bhairav.universe.data_fetch import get_market_rows, get_index_data
 
-from batuka_bhairav.scoring import (
+from batuka_bhairav.core.scoring import (
     conviction_score_0_100,
     intraday_score,
     longterm_score,
 )
 
-from batuka_bhairav.sector import sector_strength_score, build_sector_table
-from batuka_bhairav.news import get_news_drivers, compute_news_sentiment
-from batuka_bhairav.regime import detect_market_regime
-from batuka_bhairav.dashboard import write_dashboard_json
-from batuka_bhairav.explainability import build_explainability_record
+from batuka_bhairav.core.sector import sector_strength_score, build_sector_table
+from batuka_bhairav.providers.news import get_news_drivers, compute_news_sentiment
+from batuka_bhairav.core.regime import detect_market_regime
+from batuka_bhairav.core.dashboard import write_dashboard_json
+from batuka_bhairav.core.explainability import build_explainability_record
