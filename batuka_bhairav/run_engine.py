@@ -65,6 +65,11 @@ def main():
     explainability_records = []
 
     for r in rows:
+        # 🔥 FIX: ensure required fields exist
+        r.setdefault("day_change_pct", 0.0)
+        r.setdefault("volume", 0.0)
+        r.setdefault("price", 0.0)
+
         sec_score = sector_rank.get(r.get("sector"), 0.0)
 
         btst_conviction = conviction_score_0_100(
