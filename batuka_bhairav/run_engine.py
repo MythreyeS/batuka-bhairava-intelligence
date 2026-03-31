@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import os
+import json
 from datetime import datetime
 import pytz
 
@@ -26,7 +26,6 @@ from batuka_bhairav.core.scoring import (
 
 from batuka_bhairav.core.sector import compute_sector_strength
 from batuka_bhairav.core.regime import get_market_regime
-from batuka_bhairav.core.dashboard import write_dashboard_json
 from batuka_bhairav.core.explainability import build_explainability_record
 
 # ✅ NEWS
@@ -43,13 +42,13 @@ def main():
     print(f"[Universe] NSE official: {len(rows)} stocks fetched")
 
     # -------------------------------
-    # STEP 2 — MARKET REGIME (FIXED)
+    # STEP 2 — MARKET REGIME
     # -------------------------------
     regime = get_market_regime()
     print(f"[Batuka] Market regime: {regime}")
 
     # -------------------------------
-    # STEP 3 — NEWS (FIXED)
+    # STEP 3 — NEWS
     # -------------------------------
     news_items = fetch_all_news()
     news_summary = summarize_news(news_items)
@@ -60,7 +59,7 @@ def main():
     print(f"[Batuka] News sentiment: {news_sentiment}")
 
     # -------------------------------
-    # STEP 4 — SECTOR (FIXED)
+    # STEP 4 — SECTOR
     # -------------------------------
     sector_rank, sector_table = compute_sector_strength(rows)
 
@@ -154,7 +153,9 @@ def main():
         "explainability": explainability_records,
     }
 
-    write_dashboard_json(output_payload)
+    # ✅ FINAL WRITE (NO DASHBOARD DEPENDENCY)
+    with open("output.json", "w") as f:
+        json.dump(output_payload, f, indent=2)
 
     print("✅ Engine run completed successfully!")
 
