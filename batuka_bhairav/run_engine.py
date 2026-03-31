@@ -25,11 +25,11 @@ from batuka_bhairav.core.scoring import (
 )
 
 from batuka_bhairav.core.sector import compute_sector_strength
-from batuka_bhairav.core.regime import detect_market_regime
+from batuka_bhairav.core.regime import get_market_regime
 from batuka_bhairav.core.dashboard import write_dashboard_json
 from batuka_bhairav.core.explainability import build_explainability_record
 
-# ✅ NEWS (FIXED CORRECTLY)
+# ✅ NEWS
 from batuka_bhairav.providers.news import fetch_all_news, summarize_news
 
 
@@ -43,19 +43,13 @@ def main():
     print(f"[Universe] NSE official: {len(rows)} stocks fetched")
 
     # -------------------------------
-    # STEP 2 — INDEX (TEMP FIX)
+    # STEP 2 — MARKET REGIME (FIXED)
     # -------------------------------
-    idx_close = 0
-    idx_sma20 = 0
-
-    # -------------------------------
-    # STEP 3 — MARKET REGIME
-    # -------------------------------
-    regime = detect_market_regime(idx_close, idx_sma20)
+    regime = get_market_regime()
     print(f"[Batuka] Market regime: {regime}")
 
     # -------------------------------
-    # STEP 4 — NEWS (FIXED)
+    # STEP 3 — NEWS (FIXED)
     # -------------------------------
     news_items = fetch_all_news()
     news_summary = summarize_news(news_items)
@@ -66,12 +60,12 @@ def main():
     print(f"[Batuka] News sentiment: {news_sentiment}")
 
     # -------------------------------
-    # STEP 5 — SECTOR
+    # STEP 4 — SECTOR (FIXED)
     # -------------------------------
     sector_rank, sector_table = compute_sector_strength(rows)
 
     # -------------------------------
-    # STEP 6 — SCORING
+    # STEP 5 — SCORING
     # -------------------------------
     scored_btst = []
     scored_intraday = []
@@ -110,7 +104,7 @@ def main():
         )
 
     # -------------------------------
-    # STEP 7 — SORT
+    # STEP 6 — SORT
     # -------------------------------
     scored_btst.sort(key=lambda x: x["conviction"], reverse=True)
     scored_intraday.sort(key=lambda x: x["conviction"], reverse=True)
@@ -121,12 +115,12 @@ def main():
     longterm_cards = scored_longterm[:10]
 
     # -------------------------------
-    # STEP 8 — MAN OF MATCH
+    # STEP 7 — MAN OF MATCH
     # -------------------------------
     man_of_match = btst_cards[0] if btst_cards else None
 
     # -------------------------------
-    # STEP 9 — TOMORROW
+    # STEP 8 — TOMORROW OUTLOOK
     # -------------------------------
     tomorrow = {
         "regime": regime,
@@ -137,7 +131,7 @@ def main():
     }
 
     # -------------------------------
-    # STEP 10 — JSON OUTPUT
+    # STEP 9 — JSON OUTPUT
     # -------------------------------
     output_payload = {
         "market_code": ACTIVE_MARKET,
@@ -148,8 +142,6 @@ def main():
         ).isoformat(),
         "regime": regime,
         "index_label": INDEX_LABEL,
-        "index_close": idx_close,
-        "index_sma20": idx_sma20,
         "total_scanned": len(rows),
         "sector_table": sector_table[:10],
         "man_of_match": man_of_match,
