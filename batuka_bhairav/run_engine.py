@@ -23,36 +23,36 @@ from batuka_bhairav.telegram_orchestrator import send_telegram_message
 
 
 # -------------------------------
-# 🧠 EXPLAIN STOCK
+# 🧠 EXPLANATION ENGINE
 # -------------------------------
 def explain_stock(r):
     reasons = []
 
     if r.get("above_sma20") and r.get("above_sma50"):
-        reasons.append("price above key moving averages")
+        reasons.append("price above key moving averages (uptrend)")
 
-    if r.get("mom_20d", 0) > 0:
-        reasons.append(f"20d momentum +{round(r.get('mom_20d',0),1)}%")
+    if r.get("mom_20d", 0) > 1:
+        reasons.append(f"short-term momentum +{round(r['mom_20d'],1)}%")
 
-    if r.get("mom_60d", 0) > 0:
-        reasons.append(f"60d momentum +{round(r.get('mom_60d',0),1)}%")
+    if r.get("mom_60d", 0) > 5:
+        reasons.append(f"strong medium-term trend +{round(r['mom_60d'],1)}%")
 
-    if r.get("vol_ratio", 0) > 1.2:
-        reasons.append("volume spike (institutional activity)")
+    if r.get("vol_ratio", 0) > 1.3:
+        reasons.append("high volume — institutional activity")
 
     if 45 < r.get("rsi", 50) < 65:
-        reasons.append("RSI balanced")
+        reasons.append("RSI balanced — healthy trend")
 
     return reasons[:4]
 
 
 # -------------------------------
-# 🎯 TRADE LEVELS
+# 🎯 TRADE LOGIC
 # -------------------------------
 def trade_levels(r):
-    price = r.get("price", 0)
+    price = r["price"]
 
-    entry_low = round(price * 0.99, 2)
+    entry_low = round(price * 0.995, 2)
     entry_high = round(price * 1.01, 2)
 
     target = round(price * 1.03, 2)
@@ -67,81 +67,81 @@ def trade_levels(r):
 # 🚀 MAIN ENGINE
 # -------------------------------
 def main():
-    print(f"[Batuka] {MARKET_NAME}")
+    print("🚀 Running Batuka Engine")
 
     rows = fetch_nse500()
     symbols = [r["symbol"] for r in rows]
 
-    print("📡 Fetching real market data...")
+    print("📡 Fetching market data...")
     market_data = fetch_market_data(symbols)
 
-    regime = get_market_regime()
-    sector_rank, sector_table = compute_sector_strength(rows)
-
-    scored_btst = []
-    scored_long = []
-
+    # attach data BEFORE sector calc
+    enriched = []
     for r in rows:
-        sym = r.get("symbol")
+        sym = r["symbol"]
+        if sym in market_data:
+            r.update(market_data[sym])
+            enriched.append(r)
 
-        if sym not in market_data:
-            continue
+    # -------------------------------
+    # FIX: sectors now computed on REAL DATA
+    # -------------------------------
+    sector_rank, sector_table = compute_sector_strength(enriched)
 
-        r.update(market_data[sym])
+    regime = get_market_regime()
 
-        sec = sector_rank.get(r.get("sector"), 0.0)
+    scored = []
+    for r in enriched:
+        sec = sector_rank.get(r.get("sector"), 0)
 
         try:
-            btst = conviction_score_0_100(
+            score = conviction_score_0_100(
                 r, sec, 0.5, regime, CONVICTION_WEIGHTS
             )
-            longt = longterm_score(r, sec, regime)
-        except Exception:
+            r["conviction"] = score
+            scored.append(r)
+        except:
             continue
 
-        scored_btst.append({**r, "conviction": btst})
-        scored_long.append({**r, "conviction": longt})
-
-    scored_btst.sort(key=lambda x: x["conviction"], reverse=True)
-    scored_long.sort(key=lambda x: x["conviction"], reverse=True)
+    # -------------------------------
+    # SORT
+    # -------------------------------
+    scored.sort(key=lambda x: x["conviction"], reverse=True)
 
     # -------------------------------
     # 🔥 STRONG PICKS ONLY
     # -------------------------------
-    btst_cards = [
-        x for x in scored_btst
-        if x["conviction"] > 70 and x["vol_ratio"] > 1.2
+    btst = [
+        x for x in scored
+        if x["conviction"] > 70
+        and x["vol_ratio"] > 1.2
+        and x["day_change_pct"] > 0.5
     ][:3]
 
-    long_cards = [
-        x for x in scored_long
+    long_term = [
+        x for x in scored
         if x["conviction"] > 65
+        and x["mom_60d"] > 5
     ][:3]
 
     # -------------------------------
-    # 🏆 STAR OF THE DAY
+    # ⭐ STAR OF THE DAY
     # -------------------------------
-    star = max(
-        scored_btst,
-        key=lambda x: x.get("day_change_pct", 0),
-        default=None
-    )
+    star = max(scored, key=lambda x: x["day_change_pct"])
 
     # -------------------------------
-    # 🔮 MARKET EXPECTATION
+    # 🔮 TOMORROW VIEW
     # -------------------------------
-    avg_market = sum(
-        [r.get("day_change_pct", 0) for r in rows]
-    ) / max(len(rows), 1)
+    avg = sum(x["day_change_pct"] for x in enriched) / len(enriched)
 
-    if avg_market > 0.8:
+    if avg > 1:
         tomorrow = "Strong bullish continuation possible"
-    elif avg_market > 0:
-        tomorrow = "Mild positive bias expected"
-    elif avg_market > -0.5:
-        tomorrow = "Range-bound market likely"
+    elif avg > 0:
+        tomorrow = "Mild positive bias — selective buying"
+    elif avg > -0.5:
+        tomorrow = "Range-bound market — wait for breakout"
     else:
-        tomorrow = "Weakness may continue"
+        tomorrow = "Weakness likely — avoid aggressive trades"
 
     # -------------------------------
     # 🧾 MESSAGE
@@ -157,26 +157,25 @@ def main():
 """
 
     # -------------------------------
-    # 📊 SECTORS
+    # 📊 SECTORS (REAL VALUES NOW)
     # -------------------------------
-    msg += "\n📈 <b>Sectors doing well</b>\n"
+    msg += "\n📈 <b>Sectors showing strength</b>\n"
     for s in sector_table[:3]:
-        msg += f"▲ {s.get('sector')} {round(s.get('score',0),2)}%\n"
+        msg += f"▲ {s['sector']} +{round(s['score'],2)}%\n"
 
     msg += "\n📉 <b>Sectors under pressure</b>\n"
     for s in sector_table[-3:]:
-        msg += f"▼ {s.get('sector')} {round(s.get('score',0),2)}%\n"
+        msg += f"▼ {s['sector']} {round(s['score'],2)}%\n"
 
     # -------------------------------
-    # 🏆 STAR
+    # ⭐ STAR
     # -------------------------------
-    if star:
-        msg += f"""
+    msg += f"""
 🏆 <b>STAR OF THE DAY</b>
 {star['symbol']}
 
-Moved {round(star.get('day_change_pct',0),2)}%
-Volume {round(star.get('vol_ratio',1),2)}x
+Moved {round(star['day_change_pct'],2)}%
+Volume {round(star['vol_ratio'],2)}x
 """
 
     # -------------------------------
@@ -184,20 +183,18 @@ Volume {round(star.get('vol_ratio',1),2)}x
     # -------------------------------
     msg += "\n🌙 <b>BTST PICKS</b>\n"
 
-    for i, r in enumerate(btst_cards, 1):
-        reasons = explain_stock(r)
-        reason_text = "\n• ".join(reasons)
-
-        entry_low, entry_high, target, stop, rr = trade_levels(r)
+    for i, r in enumerate(btst, 1):
+        reasons = "\n• ".join(explain_stock(r))
+        e1, e2, t, s, rr = trade_levels(r)
 
         msg += f"""
 {i}. <b>{r['symbol']}</b>
 
-Entry: {entry_low}-{entry_high}
-Target: {target} | Stop: {stop}
+Entry: {e1}-{e2}
+Target: {t} | Stop: {s}
 
 📊 Why:
-• {reason_text}
+• {reasons}
 
 Risk/Reward: {rr}x
 """
@@ -207,15 +204,14 @@ Risk/Reward: {rr}x
     # -------------------------------
     msg += "\n📈 <b>LONG TERM PICKS</b>\n"
 
-    for i, r in enumerate(long_cards, 1):
-        reasons = explain_stock(r)
-        reason_text = "\n• ".join(reasons)
+    for i, r in enumerate(long_term, 1):
+        reasons = "\n• ".join(explain_stock(r))
 
         msg += f"""
 {i}. <b>{r['symbol']}</b>
 
 📊 Why:
-• {reason_text}
+• {reasons}
 
 Conviction: {round(r['conviction'],1)}
 """
@@ -231,7 +227,7 @@ Conviction: {round(r['conviction'],1)}
     if token and chat_id:
         send_telegram_message(msg, token, chat_id)
 
-    print("✅ REPORT SENT")
+    print("✅ DONE")
 
 
 if __name__ == "__main__":
