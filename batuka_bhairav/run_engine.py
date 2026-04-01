@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-import json
-from datetime import datetime
-import pytz
 import os
 
 from batuka_bhairav.config import (
     ACTIVE_MARKET,
     MARKET_NAME,
-    MARKET_TIMEZONE,
     CONVICTION_WEIGHTS,
 )
 
@@ -27,13 +23,13 @@ from batuka_bhairav.telegram_orchestrator import send_telegram_message
 
 
 # -------------------------------
-# 🧠 SAFE EXPLAIN
+# 🧠 EXPLAIN STOCK
 # -------------------------------
 def explain_stock(r):
     reasons = []
 
     if r.get("above_sma20") and r.get("above_sma50"):
-        reasons.append("price above short & long-term averages")
+        reasons.append("price above key moving averages")
 
     if r.get("mom_20d", 0) > 0:
         reasons.append(f"20d momentum +{round(r.get('mom_20d',0),1)}%")
@@ -42,7 +38,7 @@ def explain_stock(r):
         reasons.append(f"60d momentum +{round(r.get('mom_60d',0),1)}%")
 
     if r.get("vol_ratio", 0) > 1.2:
-        reasons.append("volume above normal")
+        reasons.append("volume spike (institutional activity)")
 
     if 45 < r.get("rsi", 50) < 65:
         reasons.append("RSI balanced")
@@ -68,25 +64,15 @@ def trade_levels(r):
 
 
 # -------------------------------
-# 🔐 SAFE SECTOR VALUE
-# -------------------------------
-def get_sector_score(s):
-    # handle ANY structure safely
-    return s.get("score") or s.get("strength") or s.get("value") or 0
-
-
-# -------------------------------
-# 🚀 MAIN
+# 🚀 MAIN ENGINE
 # -------------------------------
 def main():
-    print(f"[Batuka] Market={ACTIVE_MARKET} | {MARKET_NAME}")
+    print(f"[Batuka] {MARKET_NAME}")
 
     rows = fetch_nse500()
-    print(f"[Universe] {len(rows)} stocks fetched")
-
     symbols = [r["symbol"] for r in rows]
 
-    print("📡 Fetching real data...")
+    print("📡 Fetching real market data...")
     market_data = fetch_market_data(symbols)
 
     regime = get_market_regime()
@@ -119,8 +105,43 @@ def main():
     scored_btst.sort(key=lambda x: x["conviction"], reverse=True)
     scored_long.sort(key=lambda x: x["conviction"], reverse=True)
 
-    btst_cards = [x for x in scored_btst if x["conviction"] > 60][:3]
-    long_cards = [x for x in scored_long if x["conviction"] > 60][:3]
+    # -------------------------------
+    # 🔥 STRONG PICKS ONLY
+    # -------------------------------
+    btst_cards = [
+        x for x in scored_btst
+        if x["conviction"] > 70 and x["vol_ratio"] > 1.2
+    ][:3]
+
+    long_cards = [
+        x for x in scored_long
+        if x["conviction"] > 65
+    ][:3]
+
+    # -------------------------------
+    # 🏆 STAR OF THE DAY
+    # -------------------------------
+    star = max(
+        scored_btst,
+        key=lambda x: x.get("day_change_pct", 0),
+        default=None
+    )
+
+    # -------------------------------
+    # 🔮 MARKET EXPECTATION
+    # -------------------------------
+    avg_market = sum(
+        [r.get("day_change_pct", 0) for r in rows]
+    ) / max(len(rows), 1)
+
+    if avg_market > 0.8:
+        tomorrow = "Strong bullish continuation possible"
+    elif avg_market > 0:
+        tomorrow = "Mild positive bias expected"
+    elif avg_market > -0.5:
+        tomorrow = "Range-bound market likely"
+    else:
+        tomorrow = "Weakness may continue"
 
     # -------------------------------
     # 🧾 MESSAGE
@@ -130,20 +151,33 @@ def main():
 📍 {MARKET_NAME}
 
 🟡 <b>Market Today: {regime}</b>
+
+🔮 <b>What to Expect Tomorrow</b>
+{tomorrow}
 """
 
     # -------------------------------
-    # 📊 SECTORS (SAFE)
+    # 📊 SECTORS
     # -------------------------------
     msg += "\n📈 <b>Sectors doing well</b>\n"
     for s in sector_table[:3]:
-        score = get_sector_score(s)
-        msg += f"▲ {s.get('sector','Unknown')} +{round(score,2)}%\n"
+        msg += f"▲ {s.get('sector')} {round(s.get('score',0),2)}%\n"
 
     msg += "\n📉 <b>Sectors under pressure</b>\n"
     for s in sector_table[-3:]:
-        score = get_sector_score(s)
-        msg += f"▼ {s.get('sector','Unknown')} {round(score,2)}%\n"
+        msg += f"▼ {s.get('sector')} {round(s.get('score',0),2)}%\n"
+
+    # -------------------------------
+    # 🏆 STAR
+    # -------------------------------
+    if star:
+        msg += f"""
+🏆 <b>STAR OF THE DAY</b>
+{star['symbol']}
+
+Moved {round(star.get('day_change_pct',0),2)}%
+Volume {round(star.get('vol_ratio',1),2)}x
+"""
 
     # -------------------------------
     # 🌙 BTST PICKS
@@ -157,9 +191,9 @@ def main():
         entry_low, entry_high, target, stop, rr = trade_levels(r)
 
         msg += f"""
-{i}. <b>{r.get('symbol')}</b>
+{i}. <b>{r['symbol']}</b>
 
-Entry: {entry_low} - {entry_high}
+Entry: {entry_low}-{entry_high}
 Target: {target} | Stop: {stop}
 
 📊 Why:
@@ -178,12 +212,12 @@ Risk/Reward: {rr}x
         reason_text = "\n• ".join(reasons)
 
         msg += f"""
-{i}. <b>{r.get('symbol')}</b>
+{i}. <b>{r['symbol']}</b>
 
 📊 Why:
 • {reason_text}
 
-Conviction: {round(r.get('conviction',0),1)}
+Conviction: {round(r['conviction'],1)}
 """
 
     msg += "\n⚠️ AI-generated insight. Not financial advice."
@@ -197,7 +231,7 @@ Conviction: {round(r.get('conviction',0),1)}
     if token and chat_id:
         send_telegram_message(msg, token, chat_id)
 
-    print("✅ FINAL REPORT SENT")
+    print("✅ REPORT SENT")
 
 
 if __name__ == "__main__":
