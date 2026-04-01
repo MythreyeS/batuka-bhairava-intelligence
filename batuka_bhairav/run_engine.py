@@ -1,5 +1,4 @@
 from __future__ import annotations
-from batuka_bhairav.universe.market_data import fetch_market_data
 
 import json
 from datetime import datetime
@@ -9,13 +8,12 @@ import os
 from batuka_bhairav.config import (
     ACTIVE_MARKET,
     MARKET_NAME,
-    MARKET_CURRENCY,
-    MARKET_TIMEZONE, 
-    INDEX_LABEL,
+    MARKET_TIMEZONE,
     CONVICTION_WEIGHTS,
 )
 
 from batuka_bhairav.universe.fetch_universe import fetch_nse500
+from batuka_bhairav.universe.market_data import fetch_market_data
 
 from batuka_bhairav.core.scoring import (
     conviction_score_0_100,
@@ -25,119 +23,68 @@ from batuka_bhairav.core.scoring import (
 
 from batuka_bhairav.core.sector import compute_sector_strength
 from batuka_bhairav.core.regime import get_market_regime
-from batuka_bhairav.core.explainability import build_explainability_record
 
 from batuka_bhairav.telegram_orchestrator import send_telegram_message
 
 
-# 🔥 GLOBAL SAFE DEFAULTS (NO MORE KEYERRORS EVER)
-SAFE_DEFAULTS = {
-    "day_change_pct": 0.0,
-    "vol_ratio": 1.0,
-    "close_near_high": 0.5,
-    "gap_pct": 0.0,
-    "intraday_pct": 0.0,
-    "rsi": 50.0,
-    "above_sma20": 0.0,
-    "above_sma50": 0.0,
-    "mom_20d": 0.0,
-    "mom_60d": 0.0,   # 👈 YOUR CURRENT ERROR FIXED
-    "volume": 0.0,
-    "price": 0.0,
-}
-
-
-def enrich_with_defaults(row: dict):
-    for k, v in SAFE_DEFAULTS.items():
-        row.setdefault(k, v)
-    return row
-
-
 def main():
-    print(f"[Batuka] Market={ACTIVE_MARKET} | {MARKET_NAME} | RunType=BTST")
+    print(f"[Batuka] Market={ACTIVE_MARKET} | {MARKET_NAME}")
 
     # -------------------------------
-    # STEP 1 — FETCH DATA
+    # STEP 1 — FETCH UNIVERSE
     # -------------------------------
-    rfor r in rows:
-    sym = r.get("symbol")
+    rows = fetch_nse500()
+    print(f"[Universe] {len(rows)} stocks fetched")
 
-    if sym not in market_data:
-        continue  # skip if no real data
-
-    r.update(market_data[sym])  # 🔥 inject real features
-
-    sec_score = sector_rank.get(r.get("sector"), 0.0)
-
-    try:
-        btst = conviction_score_0_100(r, sec_score, 0.5, regime, CONVICTION_WEIGHTS)
-        intra = intraday_score(r, sec_score, regime)
-        longt = longterm_score(r, sec_score, regime)
-    except Exception:
-        continue
-
-    scored_btst.append({**r, "conviction": btst})
-    scored_intraday.append({**r, "conviction": intra})
-    scored_longterm.append({**r, "conviction": longt})
     # -------------------------------
-    # STEP 2 — MARKET REGIME
+    # STEP 2 — FETCH REAL MARKET DATA
+    # -------------------------------
+    symbols = [r["symbol"] for r in rows]
+
+    print("📡 Fetching real market data...")
+    market_data = fetch_market_data(symbols)
+
+    # -------------------------------
+    # STEP 3 — MARKET REGIME
     # -------------------------------
     regime = get_market_regime()
-    print(f"[Batuka] Market regime: {regime}")
-
-    # -------------------------------
-    # STEP 3 — NEWS (DISABLED)
-    # -------------------------------
-    print("[Batuka] Skipping news for faster execution")
-    news_drivers = []
-    news_sentiment = 0.5
+    print(f"[Batuka] Regime: {regime}")
 
     # -------------------------------
     # STEP 4 — SECTOR
     # -------------------------------
     sector_rank, sector_table = compute_sector_strength(rows)
 
-    # -------------------------------
-    # STEP 5 — SCORING
-    # -------------------------------
     scored_btst = []
     scored_intraday = []
     scored_longterm = []
-    explainability_records = []
 
+    # -------------------------------
+    # STEP 5 — SCORING
+    # -------------------------------
     for r in rows:
-        r = enrich_with_defaults(r)
+        sym = r.get("symbol")
+
+        if sym not in market_data:
+            continue  # skip if no data
+
+        # 🔥 inject REAL DATA
+        r.update(market_data[sym])
 
         sec_score = sector_rank.get(r.get("sector"), 0.0)
 
         try:
-            btst_conviction = conviction_score_0_100(
-                r, sec_score, news_sentiment, regime, CONVICTION_WEIGHTS
+            btst = conviction_score_0_100(
+                r, sec_score, 0.5, regime, CONVICTION_WEIGHTS
             )
-
-            intraday_conviction = intraday_score(r, sec_score, regime)
-            longterm_conviction = longterm_score(r, sec_score, regime)
-
-        except Exception as e:
-            print(f"⚠️ Skipping {r.get('symbol')} due to error: {e}")
+            intra = intraday_score(r, sec_score, regime)
+            longt = longterm_score(r, sec_score, regime)
+        except Exception:
             continue
 
-        scored_btst.append({**r, "conviction": btst_conviction})
-        scored_intraday.append({**r, "conviction": intraday_conviction})
-        scored_longterm.append({**r, "conviction": longterm_conviction})
-
-        explainability_records.append(
-            build_explainability_record(
-                symbol=r.get("symbol"),
-                name=r.get("name"),
-                sector=r.get("sector"),
-                features=r,
-                sector_score=sec_score,
-                news_score=news_sentiment,
-                regime=regime,
-                conviction=btst_conviction,
-            )
-        )
+        scored_btst.append({**r, "conviction": btst})
+        scored_intraday.append({**r, "conviction": intra})
+        scored_longterm.append({**r, "conviction": longt})
 
     # -------------------------------
     # STEP 6 — SORT
@@ -146,51 +93,67 @@ def main():
     scored_intraday.sort(key=lambda x: x["conviction"], reverse=True)
     scored_longterm.sort(key=lambda x: x["conviction"], reverse=True)
 
-    btst_cards = scored_btst[:10]
-    intraday_cards = scored_intraday[:10]
-    longterm_cards = scored_longterm[:10]
+    # 🎯 ONLY REAL STRONG SIGNALS
+    btst_cards = [x for x in scored_btst if x["conviction"] > 60][:5]
+    intraday_cards = [x for x in scored_intraday if x["conviction"] > 60][:5]
+    longterm_cards = [x for x in scored_longterm if x["conviction"] > 60][:5]
 
-    man_of_match = btst_cards[0] if btst_cards else None
-
-    # -------------------------------
-    # STEP 7 — OUTPUT
-    # -------------------------------
-    output_payload = {
-        "market_code": ACTIVE_MARKET,
-        "market_name": MARKET_NAME,
-        "generated_at": datetime.now(
-            pytz.timezone(MARKET_TIMEZONE)
-        ).isoformat(),
-        "regime": regime,
-        "total_scanned": len(rows),
-        "man_of_match": man_of_match,
-        "btst_cards": btst_cards,
-        "intraday_cards": intraday_cards,
-        "longterm_cards": longterm_cards,
-    }
-
-    with open("output.json", "w") as f:
-        json.dump(output_payload, f, indent=2)
+    man = btst_cards[0] if btst_cards else None
 
     # -------------------------------
-    # STEP 8 — TELEGRAM
+    # STEP 7 — TELEGRAM MESSAGE
+    # -------------------------------
+    if not btst_cards:
+        msg = f"""
+🔥 BATUKA SIGNAL
+
+📊 {MARKET_NAME}
+📈 Regime: {regime}
+
+⚠️ No strong signals today
+"""
+    else:
+
+        def format_list(title, items):
+            text = f"\n{title}\n"
+            for i, x in enumerate(items, 1):
+                text += f"{i}. {x['symbol']} ({round(x['conviction'],1)})\n"
+            return text
+
+        msg = f"""
+🔥 BATUKA PREMIUM SIGNAL
+
+📊 {MARKET_NAME}
+📈 Regime: {regime}
+
+🏆 Top Pick:
+{man['symbol']} ({round(man['conviction'],1)})
+
+{format_list("BTST", btst_cards)}
+{format_list("Intraday", intraday_cards)}
+{format_list("Long Term", longterm_cards)}
+
+⚠️ AI generated insights
+"""
+
+    # -------------------------------
+    # STEP 8 — SEND TELEGRAM
     # -------------------------------
     token = os.getenv("TELEGRAM_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
 
-    if token and chat_id and man_of_match:
-        msg = f"""
-🔥 BATUKA SIGNAL
-
-📊 Market: {MARKET_NAME}
-📈 Regime: {regime}
-
-🏆 Top Pick:
-{man_of_match.get("symbol")} ({round(man_of_match.get("conviction", 0), 2)})
-"""
+    if token and chat_id:
         send_telegram_message(msg, token, chat_id)
+    else:
+        print("⚠️ Telegram not configured")
 
-    print("✅ Engine run completed successfully!")
+    # -------------------------------
+    # STEP 9 — SAVE OUTPUT
+    # -------------------------------
+    with open("output.json", "w") as f:
+        json.dump({"btst": btst_cards}, f, indent=2)
+
+    print("✅ ENGINE RUN SUCCESS")
 
 
 if __name__ == "__main__":
