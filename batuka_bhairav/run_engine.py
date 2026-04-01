@@ -1,4 +1,5 @@
 from __future__ import annotations
+from batuka_bhairav.universe.market_data import fetch_market_data
 
 import json
 from datetime import datetime
@@ -58,9 +59,26 @@ def main():
     # -------------------------------
     # STEP 1 — FETCH DATA
     # -------------------------------
-    rows = fetch_nse500()
-    print(f"[Universe] NSE official: {len(rows)} stocks fetched")
+    rfor r in rows:
+    sym = r.get("symbol")
 
+    if sym not in market_data:
+        continue  # skip if no real data
+
+    r.update(market_data[sym])  # 🔥 inject real features
+
+    sec_score = sector_rank.get(r.get("sector"), 0.0)
+
+    try:
+        btst = conviction_score_0_100(r, sec_score, 0.5, regime, CONVICTION_WEIGHTS)
+        intra = intraday_score(r, sec_score, regime)
+        longt = longterm_score(r, sec_score, regime)
+    except Exception:
+        continue
+
+    scored_btst.append({**r, "conviction": btst})
+    scored_intraday.append({**r, "conviction": intra})
+    scored_longterm.append({**r, "conviction": longt})
     # -------------------------------
     # STEP 2 — MARKET REGIME
     # -------------------------------
