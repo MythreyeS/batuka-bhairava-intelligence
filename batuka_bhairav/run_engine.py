@@ -17,7 +17,6 @@ from batuka_bhairav.universe.market_data import fetch_market_data
 
 from batuka_bhairav.core.scoring import (
     conviction_score_0_100,
-    intraday_score,
     longterm_score,
 )
 
@@ -43,18 +42,18 @@ def explain_stock(r):
         reasons.append(f"60d momentum +{round(r['mom_60d'],1)}%")
 
     if r["vol_ratio"] > 1.2:
-        reasons.append("volume above normal (institutional activity)")
+        reasons.append("volume above normal")
 
     if 45 < r["rsi"] < 65:
-        reasons.append("RSI balanced (no overbought/oversold)")
+        reasons.append("RSI balanced")
 
     return reasons[:4]
 
 
 # -------------------------------
-# 🎯 ENTRY / EXIT LOGIC
+# 🎯 ENTRY / EXIT
 # -------------------------------
-def generate_trade_levels(r):
+def trade_levels(r):
     price = r["price"]
 
     entry_low = round(price * 0.99, 2)
@@ -69,24 +68,22 @@ def generate_trade_levels(r):
 
 
 # -------------------------------
-# 🚀 MAIN ENGINE
+# 🚀 MAIN
 # -------------------------------
 def main():
     print(f"[Batuka] Market={ACTIVE_MARKET} | {MARKET_NAME}")
 
     rows = fetch_nse500()
-    print(f"[Universe] {len(rows)} stocks fetched")
-
     symbols = [r["symbol"] for r in rows]
 
-    print("📡 Fetching real market data...")
+    print("📡 Fetching real data...")
     market_data = fetch_market_data(symbols)
 
     regime = get_market_regime()
     sector_rank, sector_table = compute_sector_strength(rows)
 
     scored_btst = []
-    scored_longterm = []
+    scored_long = []
 
     for r in rows:
         sym = r.get("symbol")
@@ -99,38 +96,30 @@ def main():
         sec = sector_rank.get(r.get("sector"), 0.0)
 
         try:
-            btst = conviction_score_0_100(r, sec, 0.5, regime, CONVICTION_WEIGHTS)
+            btst = conviction_score_0_100(
+                r, sec, 0.5, regime, CONVICTION_WEIGHTS
+            )
             longt = longterm_score(r, sec, regime)
         except Exception:
             continue
 
         scored_btst.append({**r, "conviction": btst})
-        scored_longterm.append({**r, "conviction": longt})
+        scored_long.append({**r, "conviction": longt})
 
     scored_btst.sort(key=lambda x: x["conviction"], reverse=True)
-    scored_longterm.sort(key=lambda x: x["conviction"], reverse=True)
+    scored_long.sort(key=lambda x: x["conviction"], reverse=True)
 
     btst_cards = [x for x in scored_btst if x["conviction"] > 60][:3]
-    longterm_cards = [x for x in scored_longterm if x["conviction"] > 60][:3]
+    long_cards = [x for x in scored_long if x["conviction"] > 60][:3]
 
     # -------------------------------
-    # 📊 MARKET TEXT
-    # -------------------------------
-    market_text = {
-        "BULLISH": "Market is trending strong — favor momentum stocks",
-        "NEUTRAL": "Market is sideways — pick selectively",
-        "BEARISH": "Market is weak — avoid aggressive trades",
-    }[regime]
-
-    # -------------------------------
-    # 🧾 BUILD MESSAGE
+    # 🧾 MESSAGE BUILD
     # -------------------------------
     msg = f"""
 🧠 <b>BATUKA BHAIRAVA</b>
 📍 {MARKET_NAME}
 
 🟡 <b>Market Today: {regime}</b>
-_{market_text}_
 """
 
     # -------------------------------
@@ -145,13 +134,15 @@ _{market_text}_
         msg += f"▼ {s['sector']} {round(s['score'],2)}%\n"
 
     # -------------------------------
-    # 🏆 BTST PICKS
+    # 🌙 BTST PICKS
     # -------------------------------
     msg += "\n🌙 <b>BTST PICKS</b>\n"
 
     for i, r in enumerate(btst_cards, 1):
         reasons = explain_stock(r)
-        entry_low, entry_high, target, stop, rr = generate_trade_levels(r)
+        reason_text = "\n• ".join(reasons)
+
+        entry_low, entry_high, target, stop, rr = trade_levels(r)
 
         msg += f"""
 {i}. <b>{r['symbol']}</b>
@@ -160,7 +151,7 @@ Entry: {entry_low} - {entry_high}
 Target: {target} | Stop: {stop}
 
 📊 Why:
-• {"\n• ".join(reasons)}
+• {reason_text}
 
 Risk/Reward: {rr}x
 """
@@ -170,28 +161,23 @@ Risk/Reward: {rr}x
     # -------------------------------
     msg += "\n📈 <b>LONG TERM PICKS</b>\n"
 
-    for i, r in enumerate(longterm_cards, 1):
+    for i, r in enumerate(long_cards, 1):
         reasons = explain_stock(r)
+        reason_text = "\n• ".join(reasons)
 
         msg += f"""
 {i}. <b>{r['symbol']}</b>
 
 📊 Why:
-• {"\n• ".join(reasons)}
+• {reason_text}
 
 Conviction: {round(r['conviction'],1)}
 """
 
-    # -------------------------------
-    # 📌 DISCLAIMER
-    # -------------------------------
-    msg += """
-⚠️ This is AI-generated market intelligence.
-Not financial advice.
-"""
+    msg += "\n⚠️ AI-generated insight. Not financial advice."
 
     # -------------------------------
-    # 🚀 SEND TELEGRAM
+    # 🚀 TELEGRAM
     # -------------------------------
     token = os.getenv("TELEGRAM_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
@@ -199,7 +185,7 @@ Not financial advice.
     if token and chat_id:
         send_telegram_message(msg, token, chat_id)
 
-    print("✅ PREMIUM REPORT SENT")
+    print("✅ FINAL REPORT SENT")
 
 
 if __name__ == "__main__":
