@@ -10,7 +10,7 @@ from batuka_bhairav.config import (
     ACTIVE_MARKET,
     MARKET_NAME,
     MARKET_CURRENCY,
-    MARKET_TIMEZONE,
+    MARKET_TIMEZONE, 
     INDEX_LABEL,
     CONVICTION_WEIGHTS,
 )
