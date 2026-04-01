@@ -27,34 +27,34 @@ from batuka_bhairav.telegram_orchestrator import send_telegram_message
 
 
 # -------------------------------
-# 🧠 EXPLAIN STOCK
+# 🧠 SAFE EXPLAIN
 # -------------------------------
 def explain_stock(r):
     reasons = []
 
-    if r["above_sma20"] and r["above_sma50"]:
+    if r.get("above_sma20") and r.get("above_sma50"):
         reasons.append("price above short & long-term averages")
 
-    if r["mom_20d"] > 0:
-        reasons.append(f"20d momentum +{round(r['mom_20d'],1)}%")
+    if r.get("mom_20d", 0) > 0:
+        reasons.append(f"20d momentum +{round(r.get('mom_20d',0),1)}%")
 
-    if r["mom_60d"] > 0:
-        reasons.append(f"60d momentum +{round(r['mom_60d'],1)}%")
+    if r.get("mom_60d", 0) > 0:
+        reasons.append(f"60d momentum +{round(r.get('mom_60d',0),1)}%")
 
-    if r["vol_ratio"] > 1.2:
+    if r.get("vol_ratio", 0) > 1.2:
         reasons.append("volume above normal")
 
-    if 45 < r["rsi"] < 65:
+    if 45 < r.get("rsi", 50) < 65:
         reasons.append("RSI balanced")
 
     return reasons[:4]
 
 
 # -------------------------------
-# 🎯 ENTRY / EXIT
+# 🎯 TRADE LEVELS
 # -------------------------------
 def trade_levels(r):
-    price = r["price"]
+    price = r.get("price", 0)
 
     entry_low = round(price * 0.99, 2)
     entry_high = round(price * 1.01, 2)
@@ -62,9 +62,17 @@ def trade_levels(r):
     target = round(price * 1.03, 2)
     stop = round(price * 0.98, 2)
 
-    rr = round((target - price) / (price - stop), 2)
+    rr = round((target - price) / max(price - stop, 0.01), 2)
 
     return entry_low, entry_high, target, stop, rr
+
+
+# -------------------------------
+# 🔐 SAFE SECTOR VALUE
+# -------------------------------
+def get_sector_score(s):
+    # handle ANY structure safely
+    return s.get("score") or s.get("strength") or s.get("value") or 0
 
 
 # -------------------------------
@@ -74,6 +82,8 @@ def main():
     print(f"[Batuka] Market={ACTIVE_MARKET} | {MARKET_NAME}")
 
     rows = fetch_nse500()
+    print(f"[Universe] {len(rows)} stocks fetched")
+
     symbols = [r["symbol"] for r in rows]
 
     print("📡 Fetching real data...")
@@ -113,7 +123,7 @@ def main():
     long_cards = [x for x in scored_long if x["conviction"] > 60][:3]
 
     # -------------------------------
-    # 🧾 MESSAGE BUILD
+    # 🧾 MESSAGE
     # -------------------------------
     msg = f"""
 🧠 <b>BATUKA BHAIRAVA</b>
@@ -123,15 +133,17 @@ def main():
 """
 
     # -------------------------------
-    # 📊 SECTORS
+    # 📊 SECTORS (SAFE)
     # -------------------------------
     msg += "\n📈 <b>Sectors doing well</b>\n"
     for s in sector_table[:3]:
-        msg += f"▲ {s['sector']} +{round(s['score'],2)}%\n"
+        score = get_sector_score(s)
+        msg += f"▲ {s.get('sector','Unknown')} +{round(score,2)}%\n"
 
     msg += "\n📉 <b>Sectors under pressure</b>\n"
     for s in sector_table[-3:]:
-        msg += f"▼ {s['sector']} {round(s['score'],2)}%\n"
+        score = get_sector_score(s)
+        msg += f"▼ {s.get('sector','Unknown')} {round(score,2)}%\n"
 
     # -------------------------------
     # 🌙 BTST PICKS
@@ -145,7 +157,7 @@ def main():
         entry_low, entry_high, target, stop, rr = trade_levels(r)
 
         msg += f"""
-{i}. <b>{r['symbol']}</b>
+{i}. <b>{r.get('symbol')}</b>
 
 Entry: {entry_low} - {entry_high}
 Target: {target} | Stop: {stop}
@@ -166,12 +178,12 @@ Risk/Reward: {rr}x
         reason_text = "\n• ".join(reasons)
 
         msg += f"""
-{i}. <b>{r['symbol']}</b>
+{i}. <b>{r.get('symbol')}</b>
 
 📊 Why:
 • {reason_text}
 
-Conviction: {round(r['conviction'],1)}
+Conviction: {round(r.get('conviction',0),1)}
 """
 
     msg += "\n⚠️ AI-generated insight. Not financial advice."
