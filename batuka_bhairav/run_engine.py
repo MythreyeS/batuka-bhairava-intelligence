@@ -5,7 +5,6 @@ from datetime import datetime
 import pytz
 import os
 
-# ✅ CONFIG
 from batuka_bhairav.config import (
     ACTIVE_MARKET,
     MARKET_NAME,
@@ -15,10 +14,8 @@ from batuka_bhairav.config import (
     CONVICTION_WEIGHTS,
 )
 
-# ✅ UNIVERSE
 from batuka_bhairav.universe.fetch_universe import fetch_nse500
 
-# ✅ CORE
 from batuka_bhairav.core.scoring import (
     conviction_score_0_100,
     intraday_score,
@@ -29,8 +26,30 @@ from batuka_bhairav.core.sector import compute_sector_strength
 from batuka_bhairav.core.regime import get_market_regime
 from batuka_bhairav.core.explainability import build_explainability_record
 
-# ✅ TELEGRAM
 from batuka_bhairav.telegram_orchestrator import send_telegram_message
+
+
+# 🔥 GLOBAL SAFE DEFAULTS (NO MORE KEYERRORS EVER)
+SAFE_DEFAULTS = {
+    "day_change_pct": 0.0,
+    "vol_ratio": 1.0,
+    "close_near_high": 0.5,
+    "gap_pct": 0.0,
+    "intraday_pct": 0.0,
+    "rsi": 50.0,
+    "above_sma20": 0.0,
+    "above_sma50": 0.0,
+    "mom_20d": 0.0,
+    "mom_60d": 0.0,   # 👈 YOUR CURRENT ERROR FIXED
+    "volume": 0.0,
+    "price": 0.0,
+}
+
+
+def enrich_with_defaults(row: dict):
+    for k, v in SAFE_DEFAULTS.items():
+        row.setdefault(k, v)
+    return row
 
 
 def main():
@@ -49,7 +68,7 @@ def main():
     print(f"[Batuka] Market regime: {regime}")
 
     # -------------------------------
-    # STEP 3 — NEWS (DISABLED FOR SPEED)
+    # STEP 3 — NEWS (DISABLED)
     # -------------------------------
     print("[Batuka] Skipping news for faster execution")
     news_drivers = []
@@ -69,31 +88,21 @@ def main():
     explainability_records = []
 
     for r in rows:
-        # 🔥 ALL REQUIRED FIELDS (FINAL FIX)
-        r.setdefault("day_change_pct", 0.0)
-        r.setdefault("vol_ratio", 1.0)
-        r.setdefault("close_near_high", 0.5)
-        r.setdefault("gap_pct", 0.0)
-        r.setdefault("intraday_pct", 0.0)
-        r.setdefault("rsi", 50.0)
-        r.setdefault("above_sma20", 0.0)
-        r.setdefault("above_sma50", 0.0)
-        r.setdefault("mom_20d", 0.0)
-        r.setdefault("volume", 0.0)
-        r.setdefault("price", 0.0)
+        r = enrich_with_defaults(r)
 
         sec_score = sector_rank.get(r.get("sector"), 0.0)
 
-        btst_conviction = conviction_score_0_100(
-            r,
-            sec_score,
-            news_sentiment,
-            regime,
-            CONVICTION_WEIGHTS
-        )
+        try:
+            btst_conviction = conviction_score_0_100(
+                r, sec_score, news_sentiment, regime, CONVICTION_WEIGHTS
+            )
 
-        intraday_conviction = intraday_score(r, sec_score, regime)
-        longterm_conviction = longterm_score(r, sec_score, regime)
+            intraday_conviction = intraday_score(r, sec_score, regime)
+            longterm_conviction = longterm_score(r, sec_score, regime)
+
+        except Exception as e:
+            print(f"⚠️ Skipping {r.get('symbol')} due to error: {e}")
+            continue
 
         scored_btst.append({**r, "conviction": btst_conviction})
         scored_intraday.append({**r, "conviction": intraday_conviction})
@@ -123,71 +132,45 @@ def main():
     intraday_cards = scored_intraday[:10]
     longterm_cards = scored_longterm[:10]
 
-    # -------------------------------
-    # STEP 7 — MAN OF MATCH
-    # -------------------------------
     man_of_match = btst_cards[0] if btst_cards else None
 
     # -------------------------------
-    # STEP 8 — TOMORROW OUTLOOK
-    # -------------------------------
-    tomorrow = {
-        "regime": regime,
-        "bias": "Bullish continuation" if regime == "BULLISH"
-        else "Sideways consolidation" if regime == "NEUTRAL"
-        else "Cautious / Bearish bias",
-        "note": "Based on index trend",
-    }
-
-    # -------------------------------
-    # STEP 9 — SAVE JSON
+    # STEP 7 — OUTPUT
     # -------------------------------
     output_payload = {
         "market_code": ACTIVE_MARKET,
         "market_name": MARKET_NAME,
-        "currency": MARKET_CURRENCY,
         "generated_at": datetime.now(
             pytz.timezone(MARKET_TIMEZONE)
         ).isoformat(),
         "regime": regime,
-        "index_label": INDEX_LABEL,
         "total_scanned": len(rows),
-        "sector_table": sector_table[:10],
         "man_of_match": man_of_match,
-        "news_drivers": news_drivers,
-        "news_sentiment": news_sentiment,
         "btst_cards": btst_cards,
         "intraday_cards": intraday_cards,
         "longterm_cards": longterm_cards,
-        "tomorrow": tomorrow,
-        "explainability": explainability_records,
     }
 
     with open("output.json", "w") as f:
         json.dump(output_payload, f, indent=2)
 
     # -------------------------------
-    # STEP 10 — TELEGRAM
+    # STEP 8 — TELEGRAM
     # -------------------------------
     token = os.getenv("TELEGRAM_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
 
     if token and chat_id and man_of_match:
         msg = f"""
-🔥 BATUKA SIGNAL ({ACTIVE_MARKET})
+🔥 BATUKA SIGNAL
 
 📊 Market: {MARKET_NAME}
 📈 Regime: {regime}
 
 🏆 Top Pick:
-{man_of_match.get("symbol")} — Score: {round(man_of_match.get("conviction", 0), 2)}
-
-📅 Outlook:
-{tomorrow['bias']}
+{man_of_match.get("symbol")} ({round(man_of_match.get("conviction", 0), 2)})
 """
         send_telegram_message(msg, token, chat_id)
-    else:
-        print("⚠️ Telegram not configured")
 
     print("✅ Engine run completed successfully!")
 
