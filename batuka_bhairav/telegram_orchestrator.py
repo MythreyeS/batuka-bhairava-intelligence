@@ -1,11 +1,11 @@
 # batuka_bhairav/telegram_orchestrator.py
 # ✅ FIXED: Retry logic with exponential backoff (BRD Section 8.1)
-
+ 
 """
 Telegram message delivery with robust retry mechanism.
 Per BRD Section 8.1: 3 retry attempts with exponential backoff (2s/4s/8s)
 """
-
+ 
 from __future__ import annotations
 import requests
 import logging
@@ -13,14 +13,14 @@ import time
 from batuka_bhairav.config import (
     TELEGRAM_RETRY_ATTEMPTS, TELEGRAM_RETRY_BACKOFF, TELEGRAM_TIMEOUT
 )
-
+ 
 logger = logging.getLogger("batuka_telegram")
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SEND WITH RETRY & BACKOFF
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def send_telegram_message(
     message: str,
     telegram_token: str,
@@ -107,12 +107,12 @@ def send_telegram_message(
     
     logger.error(f"❌ Failed to send after {max_retries} attempts")
     return False
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SEND MULTIPLE MESSAGES (for multi-market)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def send_telegram_messages(
     messages: dict[str, str],
     telegram_token: str,
@@ -145,12 +145,12 @@ def send_telegram_messages(
         time.sleep(2)
     
     return results
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # HEALTH CHECK
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def check_telegram_connection(telegram_token: str) -> bool:
     """
     ✅ Verify Telegram bot token is valid
