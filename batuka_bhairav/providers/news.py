@@ -1,156 +1,276 @@
 # batuka_bhairav/providers/news.py
-# ── Market-relevant news only — filters out irrelevant stories ────────────
+# ✅ NEW FILE: News sentiment aggregation per BRD Section 5.2-5.3
+
+"""
+News feed aggregator with source credibility weighting.
+Per BRD Section 5.2: 25 India feeds + 40+ global feeds
+Per BRD Section 5.3: Source credibility weighted sentiment
+"""
+
 from __future__ import annotations
-
-import re
-from typing import List, Dict
 import feedparser
-from batuka_bhairav.config import SOURCE_WEIGHT
+import logging
+from datetime import datetime, timedelta
+from batuka_bhairav.config import NEWS_FEEDS, POSITIVE_KEYWORDS, NEGATIVE_KEYWORDS
+
+logger = logging.getLogger("batuka_news")
 
 
-# ── MUST contain at least one of these to be considered market-relevant ───
-_MARKET_KEYWORDS = [
-    # Market / index
-    "nifty","sensex","bse","nse","market","stock","share","equity",
-    "index","ftse","nasdaq","s&p","dow","sti","hang seng",
-    # Corporate actions
-    "earnings","results","profit","revenue","quarterly","q1","q2","q3","q4",
-    "dividend","buyback","acquisition","merger","ipo","listing","stake",
-    "board","agm","mgmt","management","ceo","cfo","chairman",
-    # Macro that moves markets
-    "rbi","fed","rate","inflation","gdp","fiscal","budget","policy",
-    "fii","dii","inflow","outflow","rupee","dollar","crude","oil",
-    "interest rate","repo","monetary","economic","economy",
-    # Sectors
-    "banking","pharma","it sector","auto","fmcg","realty","metal",
-    "energy","telecom","infrastructure","capital goods",
-    # Actions
-    "rally","surge","fall","drop","gain","loss","buy","sell",
-    "upgrade","downgrade","target","analyst","forecast","outlook",
-    "ipo","ncd","fpo","rights issue","bonus","split",
-]
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# SENTIMENT ANALYSIS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-# ── BLOCK these — clearly irrelevant to stock market ─────────────────────
-_BLOCK_KEYWORDS = [
-    "accident","crash","killed","died","death","murder","crime",
-    "weather","flood","earthquake","cyclone","storm",
-    "cricket","football","sport","ipl","match","tournament","player",
-    "bollywood","movie","film","celebrity","actor","actress",
-    "recipe","food","health tip","fitness","diet","yoga",
-    "astrology","horoscope","vastu",
-    "helicopter","speedboat","plane crash","train accident",
-    "politics","election","vote","parliament","minister","cm","pm modi",
-    "war","army","military","missile","attack","terrorist",
-    "covid","vaccine","hospital","disease","pandemic",
-]
-
-
-def _is_market_relevant(title: str) -> bool:
-    """Returns True only if the news title is relevant to stock markets."""
-    t = title.lower()
-
-    # Block irrelevant content first
-    if any(w in t for w in _BLOCK_KEYWORDS):
-        return False
-
-    # Must contain at least one market keyword
-    return any(w in t for w in _MARKET_KEYWORDS)
-
-
-def _clean_html(text: str) -> str:
-    return re.sub(r"<[^>]+>", "", text or "").strip()
-
-
-def fetch_all_news(limit_per_feed: int = 8) -> List[Dict]:
+def compute_headline_sentiment(headline: str) -> float:
     """
-    Fetches from ALL configured news feeds.
-    Filters to market-relevant stories only.
+    ✅ Simple keyword-based sentiment analysis
+    
+    Per BRD Section 5.3:
+    - Positive keywords → score > 0.5
+    - Negative keywords → score < 0.5
+    - Neutral → 0.5
+    
+    Returns:
+        float: Sentiment score [0, 1] where 0.5 = neutral
     """
-    from batuka_bhairav.config import NEWS_FEEDS
+    
+    if not headline:
+        return 0.5
+    
+    text = headline.lower()
+    
+    pos_count = sum(1 for kw in POSITIVE_KEYWORDS if kw in text)
+    neg_count = sum(1 for kw in NEGATIVE_KEYWORDS if kw in text)
+    
+    total = pos_count + neg_count
+    
+    if total == 0:
+        return 0.5  # Neutral
+    
+    sentiment = (pos_count - neg_count) / (total * 2.0)  # Normalize to [-0.5, 0.5]
+    return 0.5 + sentiment  # Shift to [0, 1]
 
-    items: List[Dict] = []
-    seen_titles = set()
 
-    for feed in NEWS_FEEDS:
-        src = feed.get("source", "Unknown")
-        rss = feed.get("rss", "")
-        if not rss:
-            continue
-        try:
-            parsed = feedparser.parse(rss)
-            for entry in parsed.entries[:limit_per_feed]:
-                title = _clean_html(getattr(entry, "title", "")).strip()
-                if not title:
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# NEWS FETCHING (with error resilience per BRD)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+def fetch_news_items(market_code: str = "IN", hours_back: int = 24) -> list[dict]:
+    """
+    ✅ Fetch news items from configured feeds for a market
+    
+    Per BRD Section 5.2-5.3:
+    - Multiple tiered feeds with credibility weights
+    - Graceful fallback if feeds become stale
+    - Source-weighted sentiment aggregation
+    
+    Args:
+        market_code: Market code (IN/US/UK/SG)
+        hours_back: How many hours back to fetch news
+    
+    Returns:
+        List of news items with sentiment and source weight
+    """
+    
+    if market_code not in NEWS_FEEDS:
+        logger.warning(f"No news config for market: {market_code}")
+        return []
+    
+    news_items = []
+    cutoff_time = datetime.now() - timedelta(hours=hours_back)
+    
+    market_feeds = NEWS_FEEDS[market_code]
+    
+    for tier_name, tier_config in market_feeds.items():
+        source_weight = tier_config["weight"]
+        feeds = tier_config["feeds"]
+        
+        for feed_url in feeds:
+            try:
+                logger.debug(f"Fetching {tier_name} feed: {feed_url[:50]}...")
+                
+                # Fetch with timeout
+                feed = feedparser.parse(feed_url, timeout=10)
+                
+                if not feed.entries:
+                    logger.debug(f"  ⚠️ Feed empty: {feed_url[:40]}")
                     continue
-                # Skip duplicates
-                if title.lower() in seen_titles:
-                    continue
-                # Skip irrelevant news
-                if not _is_market_relevant(title):
-                    continue
-                seen_titles.add(title.lower())
-                items.append({
-                    "source":    src,
-                    "title":     title,
-                    "link":      getattr(entry, "link", "").strip(),
-                    "published": getattr(entry, "published", "") or getattr(entry, "updated", ""),
-                    "weight":    SOURCE_WEIGHT.get(src, 0.75),
-                })
-        except Exception:
-            continue
-
-    # Sort by source credibility
-    items.sort(key=lambda x: x["weight"], reverse=True)
-    return items
-
-
-# ── Positive / negative keyword sentiment scorer ──────────────────────────
-_POS = [
-    "surge","rally","jump","gain","beats","record","strong","upgrade",
-    "bullish","positive","rise","soar","boom","breakout","outperform",
-    "profit","growth","beat","exceed","buy","upside","recovery",
-    "rebound","high","peak","expand","robust","inflow","fii buying",
-]
-
-_NEG = [
-    "fall","drop","slump","weak","miss","downgrade","bearish","negative",
-    "crash","selloff","plunge","tumble","decline","loss","below","cut",
-    "risk","warn","concern","fear","volatile","uncertainty","sell",
-    "underperform","downside","recession","inflation","rate hike",
-    "outflow","fii selling","npa","fraud",
-]
-
-
-def news_sentiment_score(title: str) -> float:
-    t = (title or "").lower()
-    pos_hits = sum(1 for w in _POS if w in t)
-    neg_hits = sum(1 for w in _NEG if w in t)
-    score = 0.5 + (pos_hits * 0.12) - (neg_hits * 0.12)
-    return round(max(0.0, min(1.0, score)), 2)
+                
+                # Process entries
+                for entry in feed.entries[:10]:  # Max 10 per feed to avoid spam
+                    try:
+                        # Extract publication time
+                        pub_time = None
+                        if hasattr(entry, "published_parsed") and entry.published_parsed:
+                            pub_time = datetime(*entry.published_parsed[:6])
+                        
+                        # Skip old news
+                        if pub_time and pub_time < cutoff_time:
+                            continue
+                        
+                        # Extract headline
+                        headline = entry.get("title", "")
+                        if not headline:
+                            continue
+                        
+                        # Compute sentiment
+                        sentiment = compute_headline_sentiment(headline)
+                        
+                        news_items.append({
+                            "headline": headline,
+                            "source_weight": source_weight,
+                            "sentiment": sentiment,
+                            "published": pub_time.isoformat() if pub_time else "",
+                            "tier": tier_name,
+                            "link": entry.get("link", ""),
+                        })
+                    
+                    except Exception as e:
+                        logger.debug(f"  Error processing entry: {e}")
+                        continue
+            
+            except Exception as e:
+                # Per BRD: Graceful fallback if feed goes stale
+                logger.warning(f"  ❌ Feed error {tier_name}: {str(e)[:50]}")
+                continue
+    
+    logger.info(f"Fetched {len(news_items)} news items for {market_code}")
+    return news_items
 
 
-def summarize_news(news_items: List[Dict], max_items: int = 10) -> Dict:
-    if not news_items:
-        return {"drivers": [], "sentiment": 0.5}
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# STOCK-SPECIFIC SENTIMENT
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    scored = []
-    for n in news_items:
-        w = n.get("weight", SOURCE_WEIGHT.get(n.get("source", ""), 0.75))
-        s = news_sentiment_score(n.get("title", ""))
-        scored.append((w, s, n))
+def get_stock_sentiment(symbol: str, market_code: str = "IN") -> tuple[float, list[dict]]:
+    """
+    ✅ Compute sentiment specifically for a stock from recent news
+    
+    Per BRD Section 5.3:
+    news_sentiment = Σ(source_weight × sentiment_score) / Σ(source_weight)
+    
+    Args:
+        symbol: Stock symbol (e.g., "TCS", "AAPL")
+        market_code: Market code
+    
+    Returns:
+        Tuple of (weighted_sentiment [0, 1], top_articles)
+    """
+    
+    items = fetch_news_items(market_code)
+    
+    # Filter for this stock
+    relevant = [
+        item for item in items
+        if symbol.upper() in item["headline"].upper()
+    ]
+    
+    if not relevant:
+        return 0.5, []  # Neutral if no news
+    
+    # Weighted average sentiment per BRD Section 5.3
+    weighted_sum = sum(item["source_weight"] * item["sentiment"] for item in relevant)
+    weight_sum = sum(item["source_weight"] for item in relevant)
+    
+    if weight_sum == 0:
+        return 0.5, []
+    
+    weighted_sentiment = weighted_sum / weight_sum
+    
+    logger.debug(f"{symbol}: Sentiment={weighted_sentiment:.2f} from {len(relevant)} articles")
+    
+    return weighted_sentiment, relevant[:3]  # Top 3 articles
 
-    total_w = sum(x[0] for x in scored) or 1.0
-    sent    = sum(x[0] * x[1] for x in scored) / total_w
 
-    drivers = []
-    for w, s, n in scored[:max_items]:
-        title = n.get("title", "").strip()
-        if title:
-            drivers.append({
-                "source":    n.get("source", ""),
-                "title":     title,
-                "link":      n.get("link", ""),
-                "sentiment": s,
-            })
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# MARKET-WIDE SENTIMENT
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-    return {"drivers": drivers, "sentiment": round(sent, 2)}
+def get_market_sentiment(market_code: str = "IN") -> tuple[float, dict]:
+    """
+    ✅ Compute overall market sentiment
+    
+    Per BRD Section 7.1: Anticipation engine uses this for scenarios
+    
+    Returns:
+        Tuple of (average_sentiment [0, 1], {tone: description})
+    """
+    
+    items = fetch_news_items(market_code)
+    
+    if not items:
+        return 0.5, {"tone": "neutral", "description": "No recent news"}
+    
+    # Weighted average
+    weighted_sum = sum(item["source_weight"] * item["sentiment"] for item in items)
+    weight_sum = sum(item["source_weight"] for item in items)
+    
+    avg_sentiment = weighted_sum / weight_sum if weight_sum > 0 else 0.5
+    
+    # Tone description
+    if avg_sentiment > 0.60:
+        tone = "bullish"
+        description = "News tone is supportive"
+    elif avg_sentiment < 0.40:
+        tone = "bearish"
+        description = "News tone is cautious"
+    else:
+        tone = "neutral"
+        description = "Mixed news sentiment"
+    
+    return avg_sentiment, {
+        "tone": tone,
+        "sentiment_score": round(avg_sentiment, 2),
+        "description": description,
+        "article_count": len(items),
+    }
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# TOP NEWS DRIVERS (for anticipation engine)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+def get_top_news_drivers(market_code: str = "IN", top_n: int = 6) -> list[str]:
+    """
+    ✅ Get top N news headlines weighted by source credibility
+    
+    Per BRD Section 7.1: Top 6 news drivers shown in anticipation
+    
+    Returns:
+        List of top headline strings
+    """
+    
+    items = fetch_news_items(market_code)
+    
+    # Sort by source weight (credibility) descending
+    sorted_items = sorted(items, key=lambda x: x["source_weight"], reverse=True)
+    
+    return [item["headline"] for item in sorted_items[:top_n]]
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# HEALTH CHECK
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+def check_feed_health(market_code: str = "IN") -> dict:
+    """
+    ✅ Check which feeds are responsive (for monitoring)
+    
+    Returns:
+        Dict of {feed_url: status}
+    """
+    
+    if market_code not in NEWS_FEEDS:
+        return {}
+    
+    health = {}
+    market_feeds = NEWS_FEEDS[market_code]
+    
+    for tier_name, tier_config in market_feeds.items():
+        for feed_url in tier_config["feeds"]:
+            try:
+                feed = feedparser.parse(feed_url, timeout=5)
+                health[feed_url] = "ok" if feed.entries else "empty"
+            except Exception as e:
+                health[feed_url] = f"error: {type(e).__name__}"
+    
+    return health
