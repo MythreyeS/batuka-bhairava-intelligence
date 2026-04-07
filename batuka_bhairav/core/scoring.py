@@ -1,23 +1,23 @@
 # batuka_bhairav/core/scoring.py
 # ✅ FIXED: Conviction scores now properly include news sentiment
-
+ 
 """
 Scoring engines for BTST, Intraday, and Long-Term strategies.
 ✅ FIXED: News sentiment now properly used in conviction calculation
 ✅ Per BRD Section 6: All three strategy scoring functions
 """
-
+ 
 from __future__ import annotations
 import numpy as np
 import logging
-
+ 
 logger = logging.getLogger("batuka_scoring")
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SAFE FLOAT CONVERSION
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def _safe_float(val) -> float:
     """Convert value to float safely, return NaN on failure"""
     if val is None:
@@ -28,12 +28,12 @@ def _safe_float(val) -> float:
         return float(val)
     except Exception:
         return np.nan
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # FEATURE EXTRACTION
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def compute_stock_features(df) -> dict | None:
     """
     Extract features for all strategies from OHLCV dataframe.
@@ -43,10 +43,10 @@ def compute_stock_features(df) -> dict | None:
     """
     if df is None or df.empty or len(df) < 5:
         return None
-
+ 
     last = df.iloc[-1]
     prev = df.iloc[-2]
-
+ 
     open_      = _safe_float(last.get("Open"))
     close      = _safe_float(last.get("Close"))
     high       = _safe_float(last.get("High"))
@@ -54,10 +54,10 @@ def compute_stock_features(df) -> dict | None:
     prev_close = _safe_float(prev.get("Close"))
     vol        = _safe_float(last.get("Volume"))
     prev_vol   = _safe_float(prev.get("Volume"))
-
+ 
     if any(np.isnan(x) for x in [open_, close, prev_close]) or prev_close <= 0:
         return None
-
+ 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # BASIC DAILY FEATURES
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -67,7 +67,7 @@ def compute_stock_features(df) -> dict | None:
     intraday_pct   = ((close - open_) / open_) * 100.0 if open_ > 0 else 0.0
     vol_ratio      = (vol / prev_vol) if prev_vol and prev_vol > 0 else 1.0
     close_near_high = 1.0 if high > 0 and (close / high) >= 0.98 else 0.0
-
+ 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # MULTI-DAY MOMENTUM
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -75,12 +75,12 @@ def compute_stock_features(df) -> dict | None:
     prev5  = _safe_float(df["Close"].iloc[-6])  if len(df) >= 6  else close
     prev20 = _safe_float(df["Close"].iloc[-21]) if len(df) >= 21 else close
     prev60 = _safe_float(df["Close"].iloc[-61]) if len(df) >= 61 else close
-
+ 
     mom_1d  = ((close / prev_close) - 1.0) * 100 if prev_close > 0 else 0.0
     mom_5d  = ((close / prev5)      - 1.0) * 100 if prev5  > 0 else 0.0
     mom_20d = ((close / prev20)     - 1.0) * 100 if prev20 > 0 else 0.0
     mom_60d = ((close / prev60)     - 1.0) * 100 if prev60 > 0 else 0.0
-
+ 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # MOVING AVERAGES
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -89,7 +89,7 @@ def compute_stock_features(df) -> dict | None:
     sma50 = _safe_float(df["Close"].rolling(50).mean().iloc[-1]) if len(df) >= 50 else sma20
     above_sma20 = 1.0 if close > sma20 else 0.0
     above_sma50 = 1.0 if close > sma50 else 0.0
-
+ 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # ATR (Average True Range) - 14 period
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -103,7 +103,7 @@ def compute_stock_features(df) -> dict | None:
         atr = float(tr.rolling(14).mean().iloc[-1])
     except Exception:
         pass
-
+ 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # RSI (Relative Strength Index) - 14 period
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -117,7 +117,7 @@ def compute_stock_features(df) -> dict | None:
         rsi = float(100 - (100 / (1 + rs)))
     except Exception:
         pass
-
+ 
     return {
         # Price
         "open":              round(open_,      2),
@@ -145,12 +145,12 @@ def compute_stock_features(df) -> dict | None:
         "sma20":             round(sma20, 2),
         "sma50":             round(sma50, 2),
     }
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SECTOR STRENGTH NORMALIZATION
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def normalize_sector_score(sector_rank: dict, sector: str) -> float:
     """
     ✅ FIXED: Normalize sector score to [0, 1] range
@@ -166,12 +166,12 @@ def normalize_sector_score(sector_rank: dict, sector: str) -> float:
     x = sector_rank[sector]
     # Clamp to [0, 1]: 0.5 + x where x is in [-0.5, +0.5]
     return float(max(0.0, min(1.0, 0.5 + x)))
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # BTST CONVICTION SCORE (Overnight Hold)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def conviction_score_0_100(
     features: dict,
     sector_score: float,
@@ -206,7 +206,7 @@ def conviction_score_0_100(
     vol = max(0.0, min(1.0, features["vol_ratio"] / 2.0))
     tech = 0.7 if features["close_near_high"] >= 1.0 else 0.4
     reg = {"BULLISH": 1.0, "NEUTRAL": 0.6}.get(regime, 0.0)
-
+ 
     # ✅ FIXED: Now actually using news_score instead of ignoring it!
     total = (
         weights["price_momentum"]     * mom  +
@@ -218,12 +218,12 @@ def conviction_score_0_100(
     )
     
     return float(round(min(total, 100), 2))
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # INTRADAY SCORE (Same-Day Trade)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def intraday_score(
     features: dict,
     sector_score: float,
@@ -241,7 +241,7 @@ def intraday_score(
     cnh = features["close_near_high"]
     rsi_ok = 1.0 if 40 < features["rsi"] < 70 else 0.5
     reg = {"BULLISH": 1.0, "NEUTRAL": 0.7}.get(regime, 0.3)
-
+ 
     score = (
         25 * gap    +
         25 * intra  +
@@ -251,12 +251,12 @@ def intraday_score(
         5  * reg
     )
     return float(round(min(score, 100), 2))
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # LONG-TERM SCORE (Weeks to Months)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def longterm_score(
     features: dict,
     sector_score: float,
@@ -270,20 +270,20 @@ def longterm_score(
     """
     # Trend: above both SMAs
     trend = (features["above_sma20"] + features["above_sma50"]) / 2.0
-
+ 
     # Multi-week momentum
     m20 = max(0.0, min(1.0, (features["mom_20d"] + 10.0) / 20.0))
     m60 = max(0.0, min(1.0, (features["mom_60d"] + 20.0) / 40.0))
-
+ 
     # RSI: sweet spot 45-65 for entry (not overbought)
     rsi = features["rsi"]
     rsi_score = 1.0 if 45 <= rsi <= 65 else (0.6 if 35 <= rsi <= 75 else 0.2)
-
+ 
     # Volume expansion confirms move
     vol = max(0.0, min(1.0, features["vol_ratio"] / 2.0))
-
+ 
     reg = {"BULLISH": 1.0, "NEUTRAL": 0.7}.get(regime, 0.3)
-
+ 
     score = (
         25 * trend          +
         20 * m20            +
@@ -294,12 +294,12 @@ def longterm_score(
         5  * reg
     )
     return float(round(min(score, 100), 2))
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TRADE CARD BUILDERS
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def build_btst_card(symbol: str, features: dict, capital: float, currency: str = "₹") -> dict | None:
     """
     ✅ FIXED: BTST card with correct levels per BRD Section 6.4
@@ -328,8 +328,8 @@ def build_btst_card(symbol: str, features: dict, capital: float, currency: str =
         "rr": rr,
         "currency": currency,
     }
-
-
+ 
+ 
 def build_intraday_card(symbol: str, features: dict, capital: float, currency: str = "₹") -> dict | None:
     """
     ✅ FIXED: Intraday card with ATR-based levels
@@ -344,13 +344,13 @@ def build_intraday_card(symbol: str, features: dict, capital: float, currency: s
     
     if close <= 0:
         return None
-
+ 
     entry = round(close, 2)
     stop = round(entry - atr * 0.5, 2)
     target = round(entry + atr * 2.0, 2)
     qty = max(1, int(capital // entry))
     rr = round((target - entry) / (entry - stop), 2) if entry > stop else 0.0
-
+ 
     return {
         "symbol": symbol,
         "entry": entry,
@@ -360,8 +360,8 @@ def build_intraday_card(symbol: str, features: dict, capital: float, currency: s
         "rr": rr,
         "currency": currency,
     }
-
-
+ 
+ 
 def build_longterm_card(symbol: str, features: dict, capital: float, currency: str = "₹") -> dict | None:
     """
     ✅ FIXED: Long-term card with 12% target and 2×ATR stop
@@ -377,14 +377,14 @@ def build_longterm_card(symbol: str, features: dict, capital: float, currency: s
     
     if close <= 0:
         return None
-
+ 
     entry = close
     target = round(close * 1.12, 2)       # +12%
     stop = round(close - 2.0 * atr, 2)
     qty = max(1, int(capital // entry))
     rps = entry - stop
     rr = round((target - entry) / rps, 2) if rps > 0 else 0.0
-
+ 
     return {
         "symbol": symbol,
         "entry": round(entry, 2),
@@ -394,3 +394,4 @@ def build_longterm_card(symbol: str, features: dict, capital: float, currency: s
         "rr": rr,
         "currency": currency,
     }
+ 
