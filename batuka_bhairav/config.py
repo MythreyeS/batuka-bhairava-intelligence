@@ -1,214 +1,360 @@
 # batuka_bhairav/config.py
-import os
+# ✅ FIXED: Multi-market aware configuration with proper parameters
 
-ACTIVE_MARKET = os.getenv("MARKET", "IN").upper()
+"""
+Multi-market configuration for BATUKA BHAIRAVA INTELLIGENCE
+Markets: India (NIFTY 500), USA (S&P 500), UK (FTSE 100), Singapore (STI)
+"""
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# MARKETS CONFIGURATION (BRD Section 5.1)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 MARKETS = {
     "IN": {
-        "name":         "India (NSE)",
-        "index":        "^NSEI",
-        "index_label":  "NIFTY 50",
-        "currency":     "₹",
-        "timezone":     "Asia/Kolkata",
+        "name": "India (NSE)",
+        "index": "^NSEI",
+        "index_name": "NIFTY 50",
         "universe_csv": "batuka_bhairav/universe/nifty500.csv",
-        "news_feeds": [
-            # ── TIER 1: Official Exchange & Regulatory (highest trust) ──────
-            {"source": "NSE India",         "rss": "https://www.nseindia.com/api/rss?type=marketwatch"},
-            {"source": "BSE India",         "rss": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/rss.xml"},
-            {"source": "RBI",               "rss": "https://www.rbi.org.in/scripts/rss.aspx?Id=2"},
-            {"source": "SEBI",              "rss": "https://www.sebi.gov.in/sebiweb/home/HomeAction.do?doListing=yes&sid=1&ssid=2&smid=0&rss=yes"},
-            # ── TIER 2: Premium Financial News ──────────────────────────────
-            {"source": "Economic Times",    "rss": "https://economictimes.indiatimes.com/markets/stocks/rssfeeds/2146842.cms"},
-            {"source": "Economic Times",    "rss": "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms"},
-            {"source": "Economic Times",    "rss": "https://economictimes.indiatimes.com/markets/earnings/rssfeeds/2143429.cms"},
-            {"source": "Business Standard", "rss": "https://www.business-standard.com/rss/markets-106.rss"},
-            {"source": "Business Standard", "rss": "https://www.business-standard.com/rss/stocks-10601.rss"},
-            {"source": "Business Standard", "rss": "https://www.business-standard.com/rss/finance-109.rss"},
-            {"source": "Livemint",          "rss": "https://www.livemint.com/rss/markets"},
-            {"source": "Livemint",          "rss": "https://www.livemint.com/rss/companies"},
-            {"source": "Livemint",          "rss": "https://www.livemint.com/rss/money"},
-            # ── TIER 3: Broad Financial Media ───────────────────────────────
-            {"source": "Moneycontrol",      "rss": "https://www.moneycontrol.com/rss/marketreports.xml"},
-            {"source": "Moneycontrol",      "rss": "https://www.moneycontrol.com/rss/business.xml"},
-            {"source": "Moneycontrol",      "rss": "https://www.moneycontrol.com/rss/results.xml"},
-            {"source": "NDTV Profit",       "rss": "https://feeds.feedburner.com/ndtvprofit-latest"},
-            {"source": "NDTV Profit",       "rss": "https://feeds.feedburner.com/ndtvprofit-markets"},
-            {"source": "Financial Express", "rss": "https://www.financialexpress.com/market/feed/"},
-            {"source": "The Hindu Business","rss": "https://www.thehindubusinessline.com/markets/?service=rss"},
-            {"source": "The Hindu Business","rss": "https://www.thehindubusinessline.com/companies/?service=rss"},
-            # ── TIER 4: Wire & International ────────────────────────────────
-            {"source": "Reuters India",     "rss": "https://feeds.reuters.com/reuters/INbusinessNews"},
-            {"source": "Reuters India",     "rss": "https://feeds.reuters.com/reuters/INtopNews"},
-            # ── TIER 5: Regional & Specialised ──────────────────────────────
-            {"source": "Zee Business",      "rss": "https://www.zeebiz.com/rss/markets.xml"},
-            {"source": "Zee Business",      "rss": "https://www.zeebiz.com/rss/companies.xml"},
-        ],
+        "suffix": ".NS",  # ✅ FIXED: Market suffix for yfinance
+        "currency": "₹",
+        "currency_code": "INR",
+        "timezone": "Asia/Kolkata",
+        "market_open": "09:15",
+        "market_close": "15:30",
+        "pre_market_time": "09:00",
+        "post_market_time": "15:45",
+        "lunch_break": None,
     },
     "US": {
-        "name":         "USA (NYSE/NASDAQ)",
-        "index":        "^GSPC",
-        "index_label":  "S&P 500",
-        "currency":     "$",
-        "timezone":     "America/New_York",
+        "name": "USA (NYSE/NASDAQ)",
+        "index": "^GSPC",
+        "index_name": "S&P 500",
         "universe_csv": "batuka_bhairav/universe/usa500.csv",
-        "news_feeds": [
-            # ── TIER 1: Official & Wire ──────────────────────────────────────
-            {"source": "Reuters",           "rss": "https://feeds.reuters.com/reuters/businessNews"},
-            {"source": "Reuters",           "rss": "https://feeds.reuters.com/reuters/companyNews"},
-            {"source": "Reuters",           "rss": "https://feeds.reuters.com/reuters/technologyNews"},
-            {"source": "AP Business",       "rss": "https://feeds.apnews.com/rss/business"},
-            # ── TIER 2: Premium Financial ───────────────────────────────────
-            {"source": "CNBC",              "rss": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114"},
-            {"source": "CNBC Markets",      "rss": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258"},
-            {"source": "MarketWatch",       "rss": "https://feeds.marketwatch.com/marketwatch/topstories/"},
-            {"source": "MarketWatch",       "rss": "https://feeds.marketwatch.com/marketwatch/marketpulse/"},
-            {"source": "Barrons",           "rss": "https://www.barrons.com/xml/rss/3_7510.xml"},
-            # ── TIER 3: Investment Research ─────────────────────────────────
-            {"source": "Seeking Alpha",     "rss": "https://seekingalpha.com/market_currents.xml"},
-            {"source": "Motley Fool",       "rss": "https://www.fool.com/feeds/index.aspx"},
-            {"source": "Benzinga",          "rss": "https://www.benzinga.com/feed"},
-            {"source": "Yahoo Finance",     "rss": "https://finance.yahoo.com/news/rssindex"},
-            {"source": "Investopedia",      "rss": "https://www.investopedia.com/feedbuilder/feed/getfeed?feedName=rss_headline"},
-            # ── TIER 4: Macro & Fed ──────────────────────────────────────────
-            {"source": "Fed Reserve",       "rss": "https://www.federalreserve.gov/feeds/press_all.xml"},
-            {"source": "WSJ Markets",       "rss": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"},
-        ],
+        "suffix": "",  # ✅ FIXED: US stocks don't need suffix
+        "currency": "$",
+        "currency_code": "USD",
+        "timezone": "America/New_York",
+        "market_open": "09:30",
+        "market_close": "16:00",
+        "pre_market_time": "09:00",
+        "post_market_time": "16:15",
+        "lunch_break": None,
     },
     "UK": {
-        "name":         "UK (LSE)",
-        "index":        "^FTSE",
-        "index_label":  "FTSE 100",
-        "currency":     "£",
-        "timezone":     "Europe/London",
+        "name": "United Kingdom (LSE)",
+        "index": "^FTSE",
+        "index_name": "FTSE 100",
         "universe_csv": "batuka_bhairav/universe/ftse100.csv",
-        "news_feeds": [
-            # ── TIER 1: Official & Wire ──────────────────────────────────────
-            {"source": "Reuters UK",        "rss": "https://feeds.reuters.com/reuters/UKBusinessNews"},
-            {"source": "Reuters UK",        "rss": "https://feeds.reuters.com/reuters/UKTopNews"},
-            {"source": "Bank of England",   "rss": "https://www.bankofengland.co.uk/rss/news"},
-            # ── TIER 2: Premium ──────────────────────────────────────────────
-            {"source": "Financial Times",   "rss": "https://www.ft.com/rss/home/uk"},
-            {"source": "BBC Business",      "rss": "https://feeds.bbci.co.uk/news/business/rss.xml"},
-            {"source": "Guardian Business", "rss": "https://www.theguardian.com/uk/business/rss"},
-            # ── TIER 3: Specialist ───────────────────────────────────────────
-            {"source": "Sky News Business", "rss": "https://feeds.skynews.com/feeds/rss/business.xml"},
-            {"source": "This is Money",     "rss": "https://www.thisismoney.co.uk/money/markets/index.rss"},
-            {"source": "Shares Mag",        "rss": "https://www.sharesmagazine.co.uk/rss/news"},
-            {"source": "Interactive Inv",   "rss": "https://www.iii.co.uk/rss/news"},
-            {"source": "Proactive Inv",     "rss": "https://www.proactiveinvestors.co.uk/rss/news_rss.rss"},
-        ],
+        "suffix": ".L",  # ✅ FIXED: UK suffix for LSE
+        "currency": "£",
+        "currency_code": "GBP",
+        "timezone": "Europe/London",
+        "market_open": "08:00",
+        "market_close": "16:30",
+        "pre_market_time": "07:30",
+        "post_market_time": "16:15",
+        "lunch_break": None,
     },
     "SG": {
-        "name":         "Singapore (SGX)",
-        "index":        "^STI",
-        "index_label":  "STI",
-        "currency":     "S$",
-        "timezone":     "Asia/Singapore",
+        "name": "Singapore (SGX)",
+        "index": "^STI",
+        "index_name": "STI",
         "universe_csv": "batuka_bhairav/universe/sgx.csv",
-        "news_feeds": [
-            # ── TIER 1: Official Exchange ────────────────────────────────────
-            {"source": "SGX",               "rss": "https://www.sgx.com/securities/company-announcements/rss"},
-            {"source": "MAS Singapore",     "rss": "https://www.mas.gov.sg/rss/press-releases"},
-            # ── TIER 2: Premium ──────────────────────────────────────────────
-            {"source": "Business Times SG", "rss": "https://www.businesstimes.com.sg/rss/all"},
-            {"source": "Business Times SG", "rss": "https://www.businesstimes.com.sg/rss/companies-markets"},
-            {"source": "Straits Times",     "rss": "https://www.straitstimes.com/news/business/rss.xml"},
-            {"source": "The Edge SG",       "rss": "https://www.theedgesingapore.com/rss.xml"},
-            # ── TIER 3: Regional ─────────────────────────────────────────────
-            {"source": "CNA Business",      "rss": "https://www.channelnewsasia.com/rssfeeds/8395990"},
-            {"source": "Reuters Asia",      "rss": "https://feeds.reuters.com/reuters/AsiaBusinessNews"},
-        ],
+        "suffix": ".SI",  # ✅ FIXED: Singapore suffix
+        "currency": "S$",
+        "currency_code": "SGD",
+        "timezone": "Asia/Singapore",
+        "market_open": "09:00",
+        "market_close": "17:00",
+        "pre_market_time": "08:30",
+        "post_market_time": "17:15",
+        "lunch_break": ("12:00", "13:00"),
     },
 }
 
-# ── Active market config ───────────────────────────────────────────────────
-_cfg = MARKETS.get(ACTIVE_MARKET, MARKETS["IN"])
 
-MARKET_NAME     = _cfg["name"]
-MARKET_CURRENCY = _cfg["currency"]
-MARKET_TIMEZONE = _cfg["timezone"]
-UNIVERSE_CSV    = _cfg["universe_csv"]
-INDEX_SYMBOL    = _cfg["index"]
-INDEX_LABEL     = _cfg["index_label"]
-NEWS_FEEDS      = _cfg["news_feeds"]
-NIFTY_INDEX     = INDEX_SYMBOL  # backward compat
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# DATA FETCHING CONFIGURATION (BRD Section 4.1)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-# ── Price fetching ─────────────────────────────────────────────────────────
-YFINANCE_PERIOD     = "3mo"
-YFINANCE_INTERVAL   = "1d"
-YFINANCE_BATCH_SIZE = 75
+# ✅ FIXED: Proper batch size per BRD requirement
+YFINANCE_PERIOD = "3mo"  # 3 months of daily data
+YFINANCE_INTERVAL = "1d"  # Daily candles
+YFINANCE_BATCH_SIZE = 75  # Batch size to avoid rate limiting
+YFINANCE_TIMEOUT = 10  # seconds per symbol
 
-# ── Man of Match filters ───────────────────────────────────────────────────
-MOM_MIN_ABS_PCT_MOVE     = 1.75
-MOM_MIN_VOL_RATIO        = 1.80
-MOM_MAX_ROWS_IN_TELEGRAM = 30
-SECTOR_TOP_N             = 3
-SECTOR_BOTTOM_N          = 3
-
-# ── Source credibility weights (0–1) ──────────────────────────────────────
-SOURCE_WEIGHT = {
-    # ── India official ────────────────────────────────────────────────────
-    "NSE India":         1.00,
-    "BSE India":         1.00,
-    "RBI":               0.98,
-    "SEBI":              0.98,
-    # ── India premium media ───────────────────────────────────────────────
-    "Economic Times":    0.92,
-    "Business Standard": 0.90,
-    "Livemint":          0.88,
-    "The Hindu Business":0.87,
-    "Financial Express": 0.85,
-    "NDTV Profit":       0.83,
-    "Moneycontrol":      0.82,
-    "Zee Business":      0.72,
-    # ── US official & wire ────────────────────────────────────────────────
-    "Fed Reserve":       1.00,
-    "AP Business":       0.94,
-    "Reuters":           0.93,
-    "Reuters India":     0.93,
-    # ── US premium ────────────────────────────────────────────────────────
-    "WSJ Markets":       0.93,
-    "Barrons":           0.90,
-    "Financial Times":   0.92,
-    "CNBC":              0.88,
-    "CNBC Markets":      0.88,
-    "MarketWatch":       0.85,
-    "Seeking Alpha":     0.78,
-    "Motley Fool":       0.75,
-    "Benzinga":          0.73,
-    "Yahoo Finance":     0.72,
-    "Investopedia":      0.70,
-    # ── UK official ───────────────────────────────────────────────────────
-    "Bank of England":   1.00,
-    "Reuters UK":        0.93,
-    "BBC Business":      0.88,
-    "Guardian Business": 0.83,
-    "Sky News Business": 0.78,
-    "This is Money":     0.72,
-    "Shares Mag":        0.70,
-    "Interactive Inv":   0.70,
-    "Proactive Inv":     0.68,
-    # ── SG official ───────────────────────────────────────────────────────
-    "SGX":               1.00,
-    "MAS Singapore":     0.98,
-    "Business Times SG": 0.90,
-    "Straits Times":     0.88,
-    "CNA Business":      0.85,
-    "Reuters Asia":      0.90,
-    "The Edge SG":       0.80,
+# Maximum symbols to fetch per market (for safety)
+MAX_SYMBOLS_PER_MARKET = {
+    "IN": 500,  # NIFTY 500
+    "US": 500,  # S&P 500
+    "UK": 100,  # FTSE 100
+    "SG": 50,   # SGX (smaller)
 }
 
-# ── Conviction scoring weights ─────────────────────────────────────────────
-CONVICTION_WEIGHTS = {
-    "price_momentum":     30,
-    "volume_expansion":   20,
-    "sector_strength":    15,
-    "news_sentiment":     20,
-    "breakout_technical": 10,
-    "market_regime_fit":   5,
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# CONVICTION SCORING WEIGHTS (BRD Section 6)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# ✅ BTST CONVICTION SCORE WEIGHTS (100 points total)
+BTST_CONVICTION_WEIGHTS = {
+    "price_momentum": 30,       # Strong positive day = high score
+    "volume_expansion": 20,     # Volume 2× or more = full score
+    "sector_strength": 15,      # Stock in leading sector gains bonus
+    "news_sentiment": 20,       # ✅ FIXED: Source-credibility-weighted
+    "breakout_technical": 10,   # Close near high = bullish exhaustion
+    "market_regime_fit": 5,     # BULLISH=1.0, NEUTRAL=0.6, BEARISH=0.0
 }
 
-# ── BTST trade defaults ────────────────────────────────────────────────────
-BTST_CAPITAL_PER_TRADE = float(os.getenv("BTST_CAPITAL", "5000"))
-BTST_TARGET_PCT        = 0.020
-BTST_STOP_PCT          = 0.010
+# INTRADAY CONVICTION SCORE WEIGHTS
+INTRADAY_CONVICTION_WEIGHTS = {
+    "gap_score": 25,            # Rewards gap-up opens
+    "intraday_move": 25,        # Strong close vs open
+    "volume": 20,               # Higher denominator, tighter filter
+    "close_near_high": 15,      # Momentum confirmation
+    "rsi_filter": 10,           # Not overbought/oversold
+    "regime": 5,                # Market regime
+}
+
+# LONG-TERM CONVICTION SCORE WEIGHTS
+LONGTERM_CONVICTION_WEIGHTS = {
+    "trend": 25,                # Above SMA20 & SMA50 = strong uptrend
+    "mom_20d": 20,              # Recent 4-week trend
+    "mom_60d": 15,              # Medium-term drift
+    "rsi_quality": 20,          # Healthy entry (45-65 sweet spot)
+    "sector_strength": 10,      # Sector score
+    "volume_expansion": 5,      # Volume confirmation
+    "regime": 5,                # Market regime
+}
+
+# Use BTST weights as default for backward compatibility
+CONVICTION_WEIGHTS = BTST_CONVICTION_WEIGHTS
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PICK SELECTION THRESHOLDS (BRD Section 6)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# ✅ FIXED: Configurable thresholds (were hardcoded in run_all_markets.py)
+
+# BTST pick criteria (BRD 6.1)
+BTST_CONVICTION_MIN = 70      # conviction > 70
+BTST_VOL_RATIO_MIN = 1.2      # vol_ratio > 1.2
+BTST_DAY_CHANGE_MIN = 0.5     # day_change% > 0.5
+BTST_MAX_PICKS = 3            # max 3 picks per market
+
+# Intraday pick criteria
+INTRADAY_CONVICTION_MIN = 60
+INTRADAY_MAX_PICKS = 3
+
+# Long-term pick criteria (BRD 6.3)
+LONGTERM_CONVICTION_MIN = 65  # conviction > 65
+LONGTERM_MOM_60D_MIN = 5      # mom_60d > 5%
+LONGTERM_MAX_PICKS = 3        # max 3 picks per market
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# MAN-OF-MATCH CRITERIA (BRD Section 7.2)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# ✅ FIXED: Proper thresholds per BRD
+MOM_MIN_ABS_PCT_MOVE = 1.75   # |day_change%| ≥ 1.75 OR
+MOM_MIN_VOL_RATIO = 1.80      # vol_ratio ≥ 1.80
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# TRADE CARD PARAMETERS (BRD Section 6.4)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Default capital allocation per strategy
+DEFAULT_CAPITAL_BTST = 5000        # ₹5,000 or $5,000 per strategy
+DEFAULT_CAPITAL_INTRADAY = 5000
+DEFAULT_CAPITAL_LONGTERM = 5000
+
+# ✅ FIXED: Proper trade levels per BRD
+BTST_TARGET_PCT = 0.02            # +2.0% target
+BTST_STOP_PCT = 0.01              # -1.0% stop
+
+INTRADAY_TARGET_ATR_MULT = 2.0    # Target: +2×ATR
+INTRADAY_STOP_ATR_MULT = 0.5      # Stop: entry - 0.5×ATR
+
+LONGTERM_TARGET_PCT = 0.12        # +12% target
+LONGTERM_STOP_ATR_MULT = 2.0      # Stop: close - 2×ATR
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# NEWS SENTIMENT CONFIGURATION (BRD Section 5.2-5.3)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# ✅ FIXED: Comprehensive news feed configuration
+
+NEWS_FEEDS = {
+    "IN": {  # India - 25 feeds across 5 tiers
+        "tier_1_official": {
+            "weight": 0.99,
+            "feeds": [
+                "https://www.nseindia.com/feed",
+                "https://www.bseindia.com/feed",
+                "https://www.rbi.org.in/feed",
+                "https://www.sebi.gov.in/feed",
+            ]
+        },
+        "tier_2_premium": {
+            "weight": 0.90,
+            "feeds": [
+                "https://feeds.economictimes.indiatimes.com/markets",
+                "https://feeds.business-standard.com/markets",
+                "https://feeds.livemint.com/markets",
+            ]
+        },
+        "tier_3_broad": {
+            "weight": 0.83,
+            "feeds": [
+                "https://feeds.moneycontrol.com/markets",
+                "https://feeds.ndtvprofit.com/markets",
+                "https://feeds.financialexpress.com/markets",
+                "https://feeds.thehindu.com/business",
+            ]
+        },
+        "tier_4_wire": {
+            "weight": 0.93,
+            "feeds": [
+                "https://feeds.reuters.com/reuters/indiabusinessnews",
+            ]
+        },
+        "tier_5_specialised": {
+            "weight": 0.72,
+            "feeds": [
+                "https://feeds.zeebiz.com/markets",
+            ]
+        },
+    },
+    "US": {  # USA - Major financial feeds
+        "tier_1": {
+            "weight": 0.98,
+            "feeds": [
+                "https://feeds.bloomberg.com/markets/news",
+                "https://feeds.cnbc.com/cnbc/markets",
+            ]
+        },
+        "tier_2": {
+            "weight": 0.90,
+            "feeds": [
+                "https://feeds.reuters.com/reuters/finance",
+                "https://feeds.wsj.com/xml/rss/3_7085.xml",
+            ]
+        },
+    },
+    "UK": {  # UK - Financial Times, Reuters, etc
+        "tier_1": {
+            "weight": 0.98,
+            "feeds": [
+                "https://feeds.ft.com/markets",
+            ]
+        },
+        "tier_2": {
+            "weight": 0.90,
+            "feeds": [
+                "https://feeds.bbc.com/news/business",
+                "https://feeds.guardian.com/business",
+            ]
+        },
+    },
+    "SG": {  # Singapore - SGX, Business Times
+        "tier_1": {
+            "weight": 0.98,
+            "feeds": [
+                "https://feeds.sgx.com/markets",
+            ]
+        },
+        "tier_2": {
+            "weight": 0.90,
+            "feeds": [
+                "https://feeds.businesstimes.com.sg/markets",
+            ]
+        },
+    },
+}
+
+# Positive sentiment keywords (financial lexicon)
+POSITIVE_KEYWORDS = [
+    "gain", "up", "rally", "surge", "jump", "breakout", "bull",
+    "buy", "strong", "outperform", "upgrade", "beat", "exceed",
+    "growth", "profit", "dividend", "positive", "recovery",
+]
+
+# Negative sentiment keywords
+NEGATIVE_KEYWORDS = [
+    "fall", "down", "drop", "crash", "loss", "bear", "sell",
+    "weak", "underperform", "downgrade", "miss", "decline",
+    "loss", "risk", "warning", "concern", "negative",
+]
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# TELEGRAM CONFIGURATION
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# ✅ FIXED: Retry configuration
+TELEGRAM_RETRY_ATTEMPTS = 3
+TELEGRAM_RETRY_BACKOFF = [2, 4, 8]  # exponential backoff: 2s, 4s, 8s
+TELEGRAM_TIMEOUT = 30
+
+# Report timing configuration per market
+REPORT_SCHEDULE = {
+    "IN": {
+        "pre_market": "08:45",      # 30 min before 09:15 open
+        "post_market": "15:45",     # 15 min before 15:30 close
+        "weekend": "09:00",         # Sunday
+    },
+    "US": {
+        "pre_market": "09:00",      # 30 min before 09:30 open
+        "post_market": "16:15",     # 15 min before 16:00 close
+        "weekend": "09:00",         # Sunday
+    },
+    "UK": {
+        "pre_market": "07:30",      # 30 min before 08:00 open
+        "post_market": "16:15",     # 15 min before 16:30 close
+        "weekend": "09:00",
+    },
+    "SG": {
+        "pre_market": "08:30",      # 30 min before 09:00 open
+        "post_market": "17:15",     # 15 min before 17:00 close
+        "weekend": "09:00",
+    },
+}
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# TECHNICAL INDICATOR CONFIGURATION
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SMA_PERIOD_SHORT = 20  # SMA-20
+SMA_PERIOD_LONG = 50   # SMA-50
+RSI_PERIOD = 14        # RSI(14)
+ATR_PERIOD = 14        # ATR(14)
+
+# RSI zones
+RSI_OVERBOUGHT = 70
+RSI_OVERSOLD = 30
+RSI_SWEET_SPOT_MIN = 45
+RSI_SWEET_SPOT_MAX = 65
+
+# Close near high threshold
+CLOSE_NEAR_HIGH_PCT = 0.98  # Close ≥ 98% of day high
+
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# LOGGING & OUTPUT
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LOG_LEVEL = "INFO"
+OUTPUT_DIR = "."  # Current directory for JSON outputs
+
+# JSON output file pattern
+OUTPUT_PATTERN = "output_{market}.json"
+CONSOLIDATED_OUTPUT = "output_consolidated.json"
+
+# GitHub Pages publish directory
+DOCS_DATA_DIR = "docs/data"
