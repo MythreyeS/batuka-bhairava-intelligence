@@ -1,15 +1,15 @@
 # batuka_bhairav/config.py
 # ✅ FIXED: Multi-market aware configuration with proper parameters
-
+ 
 """
 Multi-market configuration for BATUKA BHAIRAVA INTELLIGENCE
 Markets: India (NIFTY 500), USA (S&P 500), UK (FTSE 100), Singapore (STI)
 """
-
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MARKETS CONFIGURATION (BRD Section 5.1)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 MARKETS = {
     "IN": {
         "name": "India (NSE)",
@@ -72,18 +72,18 @@ MARKETS = {
         "lunch_break": ("12:00", "13:00"),
     },
 }
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # DATA FETCHING CONFIGURATION (BRD Section 4.1)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 # ✅ FIXED: Proper batch size per BRD requirement
 YFINANCE_PERIOD = "3mo"  # 3 months of daily data
 YFINANCE_INTERVAL = "1d"  # Daily candles
 YFINANCE_BATCH_SIZE = 75  # Batch size to avoid rate limiting
 YFINANCE_TIMEOUT = 10  # seconds per symbol
-
+ 
 # Maximum symbols to fetch per market (for safety)
 MAX_SYMBOLS_PER_MARKET = {
     "IN": 500,  # NIFTY 500
@@ -91,12 +91,12 @@ MAX_SYMBOLS_PER_MARKET = {
     "UK": 100,  # FTSE 100
     "SG": 50,   # SGX (smaller)
 }
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # CONVICTION SCORING WEIGHTS (BRD Section 6)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 # ✅ BTST CONVICTION SCORE WEIGHTS (100 points total)
 BTST_CONVICTION_WEIGHTS = {
     "price_momentum": 30,       # Strong positive day = high score
@@ -106,7 +106,7 @@ BTST_CONVICTION_WEIGHTS = {
     "breakout_technical": 10,   # Close near high = bullish exhaustion
     "market_regime_fit": 5,     # BULLISH=1.0, NEUTRAL=0.6, BEARISH=0.0
 }
-
+ 
 # INTRADAY CONVICTION SCORE WEIGHTS
 INTRADAY_CONVICTION_WEIGHTS = {
     "gap_score": 25,            # Rewards gap-up opens
@@ -116,7 +116,7 @@ INTRADAY_CONVICTION_WEIGHTS = {
     "rsi_filter": 10,           # Not overbought/oversold
     "regime": 5,                # Market regime
 }
-
+ 
 # LONG-TERM CONVICTION SCORE WEIGHTS
 LONGTERM_CONVICTION_WEIGHTS = {
     "trend": 25,                # Above SMA20 & SMA50 = strong uptrend
@@ -127,68 +127,68 @@ LONGTERM_CONVICTION_WEIGHTS = {
     "volume_expansion": 5,      # Volume confirmation
     "regime": 5,                # Market regime
 }
-
+ 
 # Use BTST weights as default for backward compatibility
 CONVICTION_WEIGHTS = BTST_CONVICTION_WEIGHTS
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # PICK SELECTION THRESHOLDS (BRD Section 6)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 # ✅ FIXED: Configurable thresholds (were hardcoded in run_all_markets.py)
-
+ 
 # BTST pick criteria (BRD 6.1)
 BTST_CONVICTION_MIN = 70      # conviction > 70
 BTST_VOL_RATIO_MIN = 1.2      # vol_ratio > 1.2
 BTST_DAY_CHANGE_MIN = 0.5     # day_change% > 0.5
 BTST_MAX_PICKS = 3            # max 3 picks per market
-
+ 
 # Intraday pick criteria
 INTRADAY_CONVICTION_MIN = 60
 INTRADAY_MAX_PICKS = 3
-
+ 
 # Long-term pick criteria (BRD 6.3)
 LONGTERM_CONVICTION_MIN = 65  # conviction > 65
 LONGTERM_MOM_60D_MIN = 5      # mom_60d > 5%
 LONGTERM_MAX_PICKS = 3        # max 3 picks per market
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MAN-OF-MATCH CRITERIA (BRD Section 7.2)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 # ✅ FIXED: Proper thresholds per BRD
 MOM_MIN_ABS_PCT_MOVE = 1.75   # |day_change%| ≥ 1.75 OR
 MOM_MIN_VOL_RATIO = 1.80      # vol_ratio ≥ 1.80
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TRADE CARD PARAMETERS (BRD Section 6.4)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 # Default capital allocation per strategy
 DEFAULT_CAPITAL_BTST = 5000        # ₹5,000 or $5,000 per strategy
 DEFAULT_CAPITAL_INTRADAY = 5000
 DEFAULT_CAPITAL_LONGTERM = 5000
-
+ 
 # ✅ FIXED: Proper trade levels per BRD
 BTST_TARGET_PCT = 0.02            # +2.0% target
 BTST_STOP_PCT = 0.01              # -1.0% stop
-
+ 
 INTRADAY_TARGET_ATR_MULT = 2.0    # Target: +2×ATR
 INTRADAY_STOP_ATR_MULT = 0.5      # Stop: entry - 0.5×ATR
-
+ 
 LONGTERM_TARGET_PCT = 0.12        # +12% target
 LONGTERM_STOP_ATR_MULT = 2.0      # Stop: close - 2×ATR
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # NEWS SENTIMENT CONFIGURATION (BRD Section 5.2-5.3)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 # ✅ FIXED: Comprehensive news feed configuration
-
+ 
 NEWS_FEEDS = {
     "IN": {  # India - 25 feeds across 5 tiers
         "tier_1_official": {
@@ -276,31 +276,31 @@ NEWS_FEEDS = {
         },
     },
 }
-
+ 
 # Positive sentiment keywords (financial lexicon)
 POSITIVE_KEYWORDS = [
     "gain", "up", "rally", "surge", "jump", "breakout", "bull",
     "buy", "strong", "outperform", "upgrade", "beat", "exceed",
     "growth", "profit", "dividend", "positive", "recovery",
 ]
-
+ 
 # Negative sentiment keywords
 NEGATIVE_KEYWORDS = [
     "fall", "down", "drop", "crash", "loss", "bear", "sell",
     "weak", "underperform", "downgrade", "miss", "decline",
     "loss", "risk", "warning", "concern", "negative",
 ]
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TELEGRAM CONFIGURATION
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 # ✅ FIXED: Retry configuration
 TELEGRAM_RETRY_ATTEMPTS = 3
 TELEGRAM_RETRY_BACKOFF = [2, 4, 8]  # exponential backoff: 2s, 4s, 8s
 TELEGRAM_TIMEOUT = 30
-
+ 
 # Report timing configuration per market
 REPORT_SCHEDULE = {
     "IN": {
@@ -324,37 +324,38 @@ REPORT_SCHEDULE = {
         "weekend": "09:00",
     },
 }
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TECHNICAL INDICATOR CONFIGURATION
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 SMA_PERIOD_SHORT = 20  # SMA-20
 SMA_PERIOD_LONG = 50   # SMA-50
 RSI_PERIOD = 14        # RSI(14)
 ATR_PERIOD = 14        # ATR(14)
-
+ 
 # RSI zones
 RSI_OVERBOUGHT = 70
 RSI_OVERSOLD = 30
 RSI_SWEET_SPOT_MIN = 45
 RSI_SWEET_SPOT_MAX = 65
-
+ 
 # Close near high threshold
 CLOSE_NEAR_HIGH_PCT = 0.98  # Close ≥ 98% of day high
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # LOGGING & OUTPUT
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 LOG_LEVEL = "INFO"
 OUTPUT_DIR = "."  # Current directory for JSON outputs
-
+ 
 # JSON output file pattern
 OUTPUT_PATTERN = "output_{market}.json"
 CONSOLIDATED_OUTPUT = "output_consolidated.json"
-
+ 
 # GitHub Pages publish directory
 DOCS_DATA_DIR = "docs/data"
+ 
