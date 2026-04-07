@@ -1,25 +1,25 @@
 # batuka_bhairav/providers/news.py
 # ✅ NEW FILE: News sentiment aggregation per BRD Section 5.2-5.3
-
+ 
 """
 News feed aggregator with source credibility weighting.
 Per BRD Section 5.2: 25 India feeds + 40+ global feeds
 Per BRD Section 5.3: Source credibility weighted sentiment
 """
-
+ 
 from __future__ import annotations
 import feedparser
 import logging
 from datetime import datetime, timedelta
 from batuka_bhairav.config import NEWS_FEEDS, POSITIVE_KEYWORDS, NEGATIVE_KEYWORDS
-
+ 
 logger = logging.getLogger("batuka_news")
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SENTIMENT ANALYSIS
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def compute_headline_sentiment(headline: str) -> float:
     """
     ✅ Simple keyword-based sentiment analysis
@@ -48,12 +48,12 @@ def compute_headline_sentiment(headline: str) -> float:
     
     sentiment = (pos_count - neg_count) / (total * 2.0)  # Normalize to [-0.5, 0.5]
     return 0.5 + sentiment  # Shift to [0, 1]
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # NEWS FETCHING (with error resilience per BRD)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def fetch_news_items(market_code: str = "IN", hours_back: int = 24) -> list[dict]:
     """
     ✅ Fetch news items from configured feeds for a market
@@ -135,12 +135,12 @@ def fetch_news_items(market_code: str = "IN", hours_back: int = 24) -> list[dict
     
     logger.info(f"Fetched {len(news_items)} news items for {market_code}")
     return news_items
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # STOCK-SPECIFIC SENTIMENT
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def get_stock_sentiment(symbol: str, market_code: str = "IN") -> tuple[float, list[dict]]:
     """
     ✅ Compute sentiment specifically for a stock from recent news
@@ -179,12 +179,12 @@ def get_stock_sentiment(symbol: str, market_code: str = "IN") -> tuple[float, li
     logger.debug(f"{symbol}: Sentiment={weighted_sentiment:.2f} from {len(relevant)} articles")
     
     return weighted_sentiment, relevant[:3]  # Top 3 articles
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MARKET-WIDE SENTIMENT
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def get_market_sentiment(market_code: str = "IN") -> tuple[float, dict]:
     """
     ✅ Compute overall market sentiment
@@ -223,12 +223,12 @@ def get_market_sentiment(market_code: str = "IN") -> tuple[float, dict]:
         "description": description,
         "article_count": len(items),
     }
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # TOP NEWS DRIVERS (for anticipation engine)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def get_top_news_drivers(market_code: str = "IN", top_n: int = 6) -> list[str]:
     """
     ✅ Get top N news headlines weighted by source credibility
@@ -245,12 +245,12 @@ def get_top_news_drivers(market_code: str = "IN", top_n: int = 6) -> list[str]:
     sorted_items = sorted(items, key=lambda x: x["source_weight"], reverse=True)
     
     return [item["headline"] for item in sorted_items[:top_n]]
-
-
+ 
+ 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # HEALTH CHECK
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+ 
 def check_feed_health(market_code: str = "IN") -> dict:
     """
     ✅ Check which feeds are responsive (for monitoring)
